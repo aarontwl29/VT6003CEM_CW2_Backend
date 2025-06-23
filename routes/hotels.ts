@@ -61,6 +61,52 @@ const getAll = async (ctx: RouterContext, next: any) => {
   await next();
 };
 
+const searchHotels = async (ctx: RouterContext, next: any) => {
+  const { country, city, start_date, end_date } = ctx.request.body as {
+    country?: string;
+    city?: string;
+    start_date?: string;
+    end_date?: string;
+  }; // Parse JSON body
+
+  try {
+    // Step 1: Search for hotels based on filters
+    const filters = {
+      country: country as string,
+      city: city as string,
+      start_date: start_date as string,
+      end_date: end_date as string,
+    };
+
+    const hotels = await model.getHotels(filters);
+
+    if (Array.isArray(hotels) && hotels.length) {
+      // Step 2: Find the cheapest room for each hotel
+      const results = await Promise.all(
+        hotels.map(async (hotel: any) => {
+          const cheapestRoom = await model.getCheapestRoom(hotel.id);
+          return {
+            ...hotel,
+            cheapest_room: cheapestRoom, // Include cheapest room details
+          };
+        })
+      );
+
+      ctx.body = results;
+      ctx.status = 200;
+    } else {
+      ctx.body = { message: "No hotels found matching the criteria" };
+      ctx.status = 404;
+    }
+  } catch (error) {
+    ctx.body = { error: "Failed to search hotels" };
+    ctx.status = 500;
+  }
+
+  await next();
+};
+
 router.get("/", getAll);
+router.post("/search", bodyParser(), searchHotels);
 
 export { router };
