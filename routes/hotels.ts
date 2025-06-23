@@ -106,7 +106,76 @@ const searchHotels = async (ctx: RouterContext, next: any) => {
   await next();
 };
 
+const getHotelById = async (ctx: RouterContext, next: any) => {
+  const hotel_id = parseInt(ctx.params.id);
+
+  if (isNaN(hotel_id)) {
+    ctx.status = 400;
+    ctx.body = { error: "Invalid hotel ID" };
+    return await next();
+  }
+
+  try {
+    const hotel = await model.getHotelById(hotel_id);
+
+    if (hotel) {
+      ctx.body = {
+        ...hotel,
+        links: {
+          self: `http://${ctx.host}/api/v1/hotels/${hotel_id}`,
+        },
+      };
+      ctx.status = 200;
+    } else {
+      ctx.status = 404;
+      ctx.body = { message: "Hotel not found" };
+    }
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: "Failed to fetch hotel" };
+  }
+
+  await next();
+};
+
+const getRoomsByHotelId = async (ctx: RouterContext, next: any) => {
+  const hotel_id = parseInt(ctx.params.id);
+
+  if (isNaN(hotel_id)) {
+    ctx.status = 400;
+    ctx.body = { error: "Invalid hotel ID" };
+    return await next();
+  }
+
+  try {
+    const rooms = await model.getRoomsByHotelId(hotel_id);
+
+    if (Array.isArray(rooms) && rooms.length) {
+      ctx.body = rooms.map((room: any) => {
+        return {
+          ...room,
+          links: {
+            hotel: `http://${ctx.host}/api/v1/hotels/${hotel_id}`,
+            self: `http://${ctx.host}/api/v1/hotels/${hotel_id}/rooms/${room.id}`,
+          },
+        };
+      });
+      ctx.status = 200;
+    } else {
+      ctx.status = 404;
+      ctx.body = { message: "No rooms found for this hotel" };
+    }
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: "Failed to fetch rooms" };
+  }
+
+  await next();
+};
+
 router.get("/", getAll);
 router.post("/search", bodyParser(), searchHotels);
+router.get("/:id", getHotelById);
+router.get("/:id/rooms", getRoomsByHotelId);
 
 export { router };
