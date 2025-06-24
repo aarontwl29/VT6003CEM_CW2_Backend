@@ -1,5 +1,5 @@
 import { basicAuth } from "../controllers/auth";
-import { generateToken } from "../controllers/authJWT";
+import { generateToken, jwtAuth } from "../controllers/authJWT";
 import { validateUser } from "../controllers/validation";
 import Router, { RouterContext } from "koa-router";
 import bodyParser from "koa-bodyparser";
@@ -85,22 +85,6 @@ const getById = async (ctx: any, next: any) => {
     ctx.status = 401;
   }
 };
-
-// const login = async (ctx: any, next: any) => {
-//   // return any details needed by the client
-//   const user = ctx.state.user;
-//   // const { id, username, email, avatarurl, role } =ctx.state.user;
-//   const id: number = user.user.id;
-//   const username: string = user.user.username;
-//   const email: string = user.user.email;
-//   const avatarurl: string = user.user.avatarurl;
-//   const about: string = user.user.about;
-//   const role: string = user.user.role;
-//   const links = {
-//     self: `http://${ctx.host}${prefix}/${id}`,
-//   };
-//   ctx.body = { id, username, email, about, avatarurl, role, links };
-// };
 
 const updateUser = async (ctx: any) => {
   let id = +ctx.params.id;
@@ -266,6 +250,32 @@ export const login = async (ctx: RouterContext) => {
   }
 };
 
+export const getRole = async (ctx: RouterContext) => {
+  const user = ctx.state.user;
+
+  if (!user || !user.id) {
+    ctx.status = 400;
+    ctx.body = { message: "Invalid token or user ID not found in token" };
+    return;
+  }
+
+  try {
+    const role = await model.findRoleById(user.id);
+
+    if (role) {
+      ctx.status = 200;
+      ctx.body = { role };
+    } else {
+      ctx.status = 404;
+      ctx.body = { message: "User not found or role not assigned" };
+    }
+  } catch (error) {
+    const err = error as Error;
+    ctx.status = 500;
+    ctx.body = { message: "Internal server error", error: err.message };
+  }
+};
+
 router.get("/", basicAuth, doSearch);
 //router.get('/search', basicAuth, doSearch);
 
@@ -277,5 +287,6 @@ router.del("/:id([0-9]{1,})", basicAuth, deleteUser);
 router.post("/login", bodyParser(), login);
 router.post("/public/register", bodyParser(), validateUser, createPublicUser);
 router.post("/staff/register", bodyParser(), validateUser, createStaffUser);
+router.get("/public/role", jwtAuth, getRole);
 
 export { router };

@@ -94,3 +94,17 @@ export const markCodeAsUsed = async (code: string) => {
     return error;
   }
 };
+
+export const findRoleById = async (id: number) => {
+  const query = "SELECT role FROM users WHERE id = ?";
+  try {
+    const result = (await db.run_query(query, [id])) as { role: string }[];
+    return result.length > 0 ? result[0].role : null;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Failed to fetch role: ${error.message}`);
+    } else {
+      throw new Error("Failed to fetch role: Unknown error");
+    }
+  }
+};
