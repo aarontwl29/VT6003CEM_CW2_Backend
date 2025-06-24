@@ -1,6 +1,7 @@
 import { basicAuth } from "../controllers/auth";
+import { generateToken } from "../controllers/authJWT";
 import { validateUser } from "../controllers/validation";
-import Router from "koa-router";
+import Router, { RouterContext } from "koa-router";
 import bodyParser from "koa-bodyparser";
 import * as model from "../models/users";
 import bcrypt from "bcryptjs";
@@ -85,21 +86,21 @@ const getById = async (ctx: any, next: any) => {
   }
 };
 
-const login = async (ctx: any, next: any) => {
-  // return any details needed by the client
-  const user = ctx.state.user;
-  // const { id, username, email, avatarurl, role } =ctx.state.user;
-  const id: number = user.user.id;
-  const username: string = user.user.username;
-  const email: string = user.user.email;
-  const avatarurl: string = user.user.avatarurl;
-  const about: string = user.user.about;
-  const role: string = user.user.role;
-  const links = {
-    self: `http://${ctx.host}${prefix}/${id}`,
-  };
-  ctx.body = { id, username, email, about, avatarurl, role, links };
-};
+// const login = async (ctx: any, next: any) => {
+//   // return any details needed by the client
+//   const user = ctx.state.user;
+//   // const { id, username, email, avatarurl, role } =ctx.state.user;
+//   const id: number = user.user.id;
+//   const username: string = user.user.username;
+//   const email: string = user.user.email;
+//   const avatarurl: string = user.user.avatarurl;
+//   const about: string = user.user.about;
+//   const role: string = user.user.role;
+//   const links = {
+//     self: `http://${ctx.host}${prefix}/${id}`,
+//   };
+//   ctx.body = { id, username, email, about, avatarurl, role, links };
+// };
 
 const updateUser = async (ctx: any) => {
   let id = +ctx.params.id;
@@ -214,14 +215,66 @@ export const createStaffUser = async (ctx: any) => {
   }
 };
 
+export const login = async (ctx: RouterContext) => {
+  const body = ctx.request.body as { username: string; password: string }; // Explicitly define the type for `body`
+  const { username, password } = body;
+
+  try {
+    // Fetch user by username from the database
+    const user = (await model.findByUsername(username)) as {
+      id: number;
+      username: string;
+      password: string;
+      role: string;
+    }[]; // Explicitly define the type for `user`
+
+    // Check if user exists
+    if (!user.length) {
+      ctx.status = 401;
+      ctx.body = { message: "Invalid credentials" };
+      return;
+    }
+
+    // Validate password directly (no hashing)
+    if (user[0].password !== password) {
+      ctx.status = 401;
+      ctx.body = { message: "Invalid credentials" };
+      return;
+    }
+
+    // Generate JWT payload
+    const payload = {
+      id: user[0].id,
+      role: user[0].role,
+      username: user[0].username,
+    };
+
+    // Generate token using authJWT
+    const token = generateToken(payload);
+
+    // Respond with the token
+    ctx.status = 200;
+    ctx.body = {
+      message: "Login successful",
+      token,
+    };
+  } catch (error) {
+    // Handle unexpected errors
+    const err = error as Error; // Explicitly cast `error` to `Error`
+    ctx.status = 500;
+    ctx.body = { message: "Internal server error", error: err.message };
+  }
+};
+
 router.get("/", basicAuth, doSearch);
 //router.get('/search', basicAuth, doSearch);
 
 router.get("/:id([0-9]{1,})", basicAuth, getById);
 router.put("/:id([0-9]{1,})", basicAuth, bodyParser(), updateUser);
 router.del("/:id([0-9]{1,})", basicAuth, deleteUser);
-router.post("/login", basicAuth, login);
+// router.post("/login", basicAuth, login);
 // new
+router.post("/login", bodyParser(), login);
 router.post("/public/register", bodyParser(), validateUser, createPublicUser);
 router.post("/staff/register", bodyParser(), validateUser, createStaffUser);
 
