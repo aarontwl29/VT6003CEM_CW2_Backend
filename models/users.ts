@@ -24,24 +24,6 @@ export const getByUserId = async (id: number) => {
   return data;
 };
 
-// export const add = async (user: any) => {
-//   let keys = Object.keys(user);
-//   let values = Object.values(user);
-//   let key = keys.join(",");
-//   let parm = "";
-//   for (let i = 0; i < values.length; i++) {
-//     parm += "?,";
-//   }
-//   parm = parm.slice(0, -1);
-//   let query = `INSERT INTO users (${key}) VALUES (${parm})`;
-//   try {
-//     await db.run_query(query, values);
-//     return { status: 201 };
-//   } catch (error) {
-//     return error;
-//   }
-// };
-
 export const findByUsername = async (username: string) => {
   const query = "SELECT * FROM users where username = ?";
   const user = await db.run_query(query, [username]);
@@ -88,6 +70,26 @@ export const add = async (user: any) => {
   try {
     await db.run_query(query, values);
     return { status: 201 };
+  } catch (error) {
+    return error;
+  }
+};
+
+export const checkSignupCode = async (code: string) => {
+  const query = "SELECT * FROM signup_codes WHERE code = ? AND is_used = FALSE";
+  try {
+    const result = await db.run_query(query, [code]);
+    return result.length > 0 ? result[0] : null;
+  } catch (error) {
+    return error;
+  }
+};
+
+export const markCodeAsUsed = async (code: string) => {
+  const query = "UPDATE signup_codes SET is_used = TRUE WHERE code = ?";
+  try {
+    await db.run_query(query, [code]);
+    return { status: 200 };
   } catch (error) {
     return error;
   }

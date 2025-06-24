@@ -85,52 +85,6 @@ const getById = async (ctx: any, next: any) => {
   }
 };
 
-const createUser = async (ctx: any, next: any) => {
-  const body = ctx.request.body;
-  let avatarurl: string = " ";
-  if (body.avatarurl) avatarurl = body.avatarurl;
-  let username: string = body.username;
-  const salt = bcrypt.genSaltSync(10);
-  const hashpwd = bcrypt.hashSync(`${body.password}`, salt);
-  let email: any = body.email;
-  let role: string = "user";
-  let secretkey: string = body.actiCode;
-  let secretList: string[] = [
-    "mongkok_123456789",
-    "mongkok_987654321",
-    "shatin_123456789",
-    "shatin_987654321",
-    "chaiwan_123456789",
-    "chaiwan_987654321",
-  ];
-  if (secretkey) {
-    for (let i = 0; i < secretList.length; i++)
-      if (secretkey == secretList[i]) {
-        role = "admin";
-        break;
-      }
-  }
-
-  console.log("role ", role);
-  let newUser = {
-    username: username,
-    password: hashpwd,
-    passwordsalt: salt,
-    email: email,
-    avatarurl: avatarurl,
-    role: role,
-  };
-
-  let result = await model.add(newUser);
-  // if (result) {
-  //   ctx.status = 201;
-  //   ctx.body = result;
-  // } else {
-  //   ctx.status = 201;
-  //   ctx.body = "{message:New user created}";
-  // }
-};
-
 const login = async (ctx: any, next: any) => {
   // return any details needed by the client
   const user = ctx.state.user;
@@ -221,14 +175,54 @@ export const createPublicUser = async (ctx: any) => {
   }
 };
 
+export const createStaffUser = async (ctx: any) => {
+  const body = ctx.request.body;
+
+  const signupCode = body.signupCode;
+  if (!signupCode) {
+    ctx.status = 400;
+    ctx.body = { message: "Sign-up code is required for staff registration" };
+    return;
+  }
+
+  const codeRecord = await model.checkSignupCode(signupCode);
+  if (!codeRecord) {
+    ctx.status = 403;
+    ctx.body = { message: "Invalid or already used sign-up code" };
+    return;
+  }
+
+  const user = {
+    firstname: body.firstname || "",
+    lastname: body.lastname || "",
+    username: body.username,
+    about: body.about || "",
+    email: body.email,
+    password: body.password,
+    avatarurl: body.avatarurl || "",
+    role:
+      (codeRecord as { generated_for?: string }).generated_for || "operator",
+  };
+
+  try {
+    await model.add(user);
+    await model.markCodeAsUsed(signupCode);
+    ctx.body = { message: "Staff account registered successfully" };
+  } catch (err) {
+    ctx.status = 500;
+    ctx.body = { message: "Registration failed", error: err };
+  }
+};
+
 router.get("/", basicAuth, doSearch);
 //router.get('/search', basicAuth, doSearch);
-// router.post("/", bodyParser(), validateUser, createUser);
+
 router.get("/:id([0-9]{1,})", basicAuth, getById);
 router.put("/:id([0-9]{1,})", basicAuth, bodyParser(), updateUser);
 router.del("/:id([0-9]{1,})", basicAuth, deleteUser);
 router.post("/login", basicAuth, login);
 // new
 router.post("/public/register", bodyParser(), validateUser, createPublicUser);
+router.post("/staff/register", bodyParser(), validateUser, createStaffUser);
 
 export { router };
