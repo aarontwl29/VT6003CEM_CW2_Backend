@@ -2,7 +2,6 @@ import Router, { RouterContext } from "koa-router";
 import bodyParser from "koa-bodyparser";
 import * as model from "../models/hotels";
 
-import { validateArticle } from "../controllers/validation";
 import { basicAuth } from "../controllers/auth";
 
 const router: Router = new Router({ prefix: "/api/v1/hotels" });

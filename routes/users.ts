@@ -197,12 +197,38 @@ const deleteUser = async (ctx: any, next: any) => {
   }
 };
 
+// Own
+export const createPublicUser = async (ctx: any) => {
+  const body = ctx.request.body;
+
+  const user = {
+    firstname: body.firstname || "",
+    lastname: body.lastname || "",
+    username: body.username,
+    about: body.about || "",
+    email: body.email,
+    password: body.password, // Plain for now, hash recommended
+    avatarurl: body.avatarurl || "",
+    role: "user",
+  };
+
+  try {
+    await model.add(user);
+    ctx.body = { message: "User registered successfully" };
+  } catch (err) {
+    ctx.status = 500;
+    ctx.body = { message: "Registration failed", error: err };
+  }
+};
+
 router.get("/", basicAuth, doSearch);
 //router.get('/search', basicAuth, doSearch);
-router.post("/", bodyParser(), validateUser, createUser);
+// router.post("/", bodyParser(), validateUser, createUser);
 router.get("/:id([0-9]{1,})", basicAuth, getById);
 router.put("/:id([0-9]{1,})", basicAuth, bodyParser(), updateUser);
 router.del("/:id([0-9]{1,})", basicAuth, deleteUser);
 router.post("/login", basicAuth, login);
+// new
+router.post("/public/register", bodyParser(), validateUser, createPublicUser);
 
 export { router };

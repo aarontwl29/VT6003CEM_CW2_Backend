@@ -24,21 +24,23 @@ export const getByUserId = async (id: number) => {
   return data;
 };
 
-export const add = async (user: any) => {
-  // let keys= Object.keys(user)
-  // let values= Object.values(user)
-  // let key = keys.join(',')
-  // let parm = ''
-  // for(let i =0; i<values.length; i++){ parm +='?,'}
-  // parm=parm.slice(0,-1)
-  // let query = `INSERT INTO users (${key}) VALUES (${parm})`
-  // try{
-  //   await db.run_query(query, values)
-  //   return {"status": 201}
-  // } catch(error) {
-  //   return error
-  // }
-};
+// export const add = async (user: any) => {
+//   let keys = Object.keys(user);
+//   let values = Object.values(user);
+//   let key = keys.join(",");
+//   let parm = "";
+//   for (let i = 0; i < values.length; i++) {
+//     parm += "?,";
+//   }
+//   parm = parm.slice(0, -1);
+//   let query = `INSERT INTO users (${key}) VALUES (${parm})`;
+//   try {
+//     await db.run_query(query, values);
+//     return { status: 201 };
+//   } catch (error) {
+//     return error;
+//   }
+// };
 
 export const findByUsername = async (username: string) => {
   const query = "SELECT * FROM users where username = ?";
@@ -70,6 +72,22 @@ export const deleteById = async (id: any) => {
   try {
     await db.run_query(query, values);
     return { affectedRows: 1 };
+  } catch (error) {
+    return error;
+  }
+};
+
+//Own
+export const add = async (user: any) => {
+  let keys = Object.keys(user);
+  let values = Object.values(user);
+  let key = keys.join(",");
+  let parm = values.map(() => "?").join(",");
+  let query = `INSERT INTO users (${key}) VALUES (${parm})`;
+
+  try {
+    await db.run_query(query, values);
+    return { status: 201 };
   } catch (error) {
     return error;
   }

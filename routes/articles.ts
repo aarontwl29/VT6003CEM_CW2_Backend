@@ -4,7 +4,7 @@ import * as model from "../models/articles";
 import * as likes from "../models/likes";
 import * as favs from "../models/favs";
 import * as msgs from "../models/msgs";
-import { validateArticle } from "../controllers/validation";
+
 import { basicAuth } from "../controllers/auth";
 
 interface Post {
@@ -247,15 +247,15 @@ async function rmMsg(ctx: RouterContext, next: any) {
   }
 }
 router.get("/", getAll);
-router.post("/", basicAuth, bodyParser(), validateArticle, createArticle);
+// router.post("/", basicAuth, bodyParser(), validateArticle, createArticle);
 router.get("/:id([0-9]{1,})", getById);
-router.put(
-  "/:id([0-9]{1,})",
-  basicAuth,
-  bodyParser(),
-  validateArticle,
-  updateArticle
-);
+// router.put(
+//   "/:id([0-9]{1,})",
+//   basicAuth,
+//   bodyParser(),
+//   validateArticle,
+//   updateArticle
+// );
 router.delete("/:id([0-9]{1,})", basicAuth, deleteArticle);
 router.get("/:id([0-9]{1,})/likes", likesCount);
 router.post("/:id([0-9]{1,})/likes", basicAuth, likePost);
