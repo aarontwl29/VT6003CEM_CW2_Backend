@@ -1,11 +1,14 @@
 import Router, { RouterContext } from "koa-router";
 import bodyParser from "koa-bodyparser";
 import { jwtAuth } from "../controllers/authJWT";
+import * as modelHotels from "../models/hotels";
+import * as modelBooking from "../models/booking";
 import * as modelUsers from "../models/users";
-import * as model from "../models/hotels";
+import * as bookingRoutes from "./booking"; // Import booking logic
 
 const router: Router = new Router({ prefix: "/api/v1/hotels" });
 
+// Route: Get all hotels
 const getAll = async (ctx: RouterContext, next: any) => {
   const {
     limit = 100,
@@ -17,7 +20,7 @@ const getAll = async (ctx: RouterContext, next: any) => {
   const parsedPage = parseInt(page as string, 10);
 
   try {
-    const result = await model.getAll(parsedLimit, parsedPage);
+    const result = await modelHotels.getAll(parsedLimit, parsedPage);
     if (result.length) {
       ctx.body = result.map((hotel: any) => {
         const {
@@ -60,30 +63,24 @@ const getAll = async (ctx: RouterContext, next: any) => {
   await next();
 };
 
+// Route: Search hotels
 const searchHotels = async (ctx: RouterContext, next: any) => {
   const { country, city, start_date, end_date } = ctx.request.body as {
     country?: string;
     city?: string;
     start_date?: string;
     end_date?: string;
-  }; // Parse JSON body
+  };
 
   try {
-    // Step 1: Search for hotels based on filters
-    const filters = {
-      country: country as string,
-      city: city as string,
-      start_date: start_date as string,
-      end_date: end_date as string,
-    };
-
-    const hotels = await model.getHotels(filters);
+    const filters = { country, city, start_date, end_date };
+    const hotels = await modelHotels.getHotels(filters);
 
     if (Array.isArray(hotels) && hotels.length) {
       // Step 2: Find the cheapest room for each hotel
       const results = await Promise.all(
         hotels.map(async (hotel: any) => {
-          const cheapestRoom = await model.getCheapestRoom(hotel.id);
+          const cheapestRoom = await modelHotels.getCheapestRoom(hotel.id);
           return {
             ...hotel,
             cheapest_room: cheapestRoom, // Include cheapest room details
@@ -105,6 +102,7 @@ const searchHotels = async (ctx: RouterContext, next: any) => {
   await next();
 };
 
+// Route: Get hotel by ID
 const getHotelById = async (ctx: RouterContext, next: any) => {
   const hotel_id = parseInt(ctx.params.id);
 
@@ -115,7 +113,7 @@ const getHotelById = async (ctx: RouterContext, next: any) => {
   }
 
   try {
-    const hotel = await model.getHotelById(hotel_id);
+    const hotel = await modelHotels.getHotelById(hotel_id);
 
     if (hotel) {
       ctx.body = {
@@ -137,6 +135,7 @@ const getHotelById = async (ctx: RouterContext, next: any) => {
   await next();
 };
 
+// Route: Get rooms by hotel ID
 const getRoomsByHotelId = async (ctx: RouterContext, next: any) => {
   const hotel_id = parseInt(ctx.params.id);
 
@@ -147,7 +146,7 @@ const getRoomsByHotelId = async (ctx: RouterContext, next: any) => {
   }
 
   try {
-    const rooms = await model.getRoomsByHotelId(hotel_id);
+    const rooms = await modelHotels.getRoomsByHotelId(hotel_id);
 
     if (Array.isArray(rooms) && rooms.length) {
       ctx.body = rooms.map((room: any) => {
@@ -172,139 +171,17 @@ const getRoomsByHotelId = async (ctx: RouterContext, next: any) => {
   await next();
 };
 
-const createBooking = async (ctx: RouterContext, next: any) => {
-  const { start_date, end_date, staff_email, first_message, room_ids } = ctx
-    .request.body as {
-    start_date: string;
-    end_date: string;
-    staff_email?: string; // Optional agency email
-    first_message: string;
-    room_ids: number[];
-  };
-
-  const user_id = ctx.state.user?.id;
-
-  console.log("Request body:", ctx.request.body); // Log the request body
-  console.log("User ID from JWT:", user_id); // Log the user ID
-
-  if (
-    !user_id ||
-    !start_date ||
-    !end_date ||
-    !first_message ||
-    !room_ids ||
-    !room_ids.length
-  ) {
-    ctx.status = 400;
-    ctx.body = { message: "Missing required fields" };
-    return;
-  }
-
-  try {
-    const booking_id = await model.createBooking(
-      user_id,
-      start_date,
-      end_date,
-      staff_email || null, // Use staff_email as provided
-      first_message
-    );
-
-    console.log("Booking ID:", booking_id); // Log the booking ID
-
-    if (!booking_id) {
-      ctx.status = 500;
-      ctx.body = { message: "Failed to create booking" };
-      return;
-    }
-
-    await model.addRoomsToBooking(booking_id, room_ids);
-
-    ctx.status = 201;
-    ctx.body = { message: "Booking created successfully", booking_id };
-  } catch (error) {
-    console.error("Error in createBooking route:", error); // Log the error
-    ctx.status = 500;
-    ctx.body = {
-      message: "Failed to create booking",
-      error: error instanceof Error ? error.message : "Unknown error",
-    };
-  }
-
-  await next();
-};
-
-export const getBookingsByRole = async (ctx: RouterContext) => {
-  const user = ctx.state.user;
-
-  if (!user || !user.id) {
-    ctx.status = 400;
-    ctx.body = { message: "Invalid token or user ID not found in token" };
-    return;
-  }
-
-  try {
-    // Fetch the user role and email using the user ID
-    type UserData = { role: string; email: string };
-    const userData = (await modelUsers.getByUserId(user.id)) as UserData[];
-    if (!userData || !userData[0]?.role) {
-      ctx.status = 404;
-      ctx.body = { message: "User role not found" };
-      return;
-    }
-
-    const userRole = userData[0].role;
-    const userEmail = userData[0].email;
-
-    let bookings;
-
-    // Handle different roles
-    if (userRole === "admin" || userRole === "operator") {
-      // Admin/Operator logic: Fetch all bookings
-      bookings = await model.getBookingsForStaff(userEmail);
-    } else if (userRole === "user") {
-      // User logic: Fetch bookings specific to the user's user ID
-      bookings = await model.getBookingsByUserId(user.id);
-    } else {
-      ctx.status = 403;
-      ctx.body = { message: "Unauthorized role" };
-      return;
-    }
-
-    if (bookings.length) {
-      // Fetch room details for each booking
-      const bookingsWithRooms = await Promise.all(
-        bookings.map(async (booking: any) => {
-          const rooms = await model.getBookingRoomsByBookingId(
-            booking.booking_id
-          );
-          return {
-            ...booking,
-            rooms, // Include room details
-          };
-        })
-      );
-
-      ctx.status = 200;
-      ctx.body = bookingsWithRooms;
-    } else {
-      ctx.status = 404;
-      ctx.body = { message: "No bookings found" };
-    }
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = {
-      message: "Failed to load bookings",
-      error: error instanceof Error ? error.message : "Unknown error",
-    };
-  }
-};
-
 // Add routes to the router
 router.get("/", getAll);
 router.post("/search", bodyParser(), searchHotels);
 router.get("/:id", getHotelById);
 router.get("/:id/rooms", getRoomsByHotelId);
-router.post("/bookings", bodyParser(), jwtAuth, createBooking);
-router.get("/private/bookings", jwtAuth, getBookingsByRole);
+router.post(
+  "/bookings",
+  bodyParser(),
+  jwtAuth,
+  bookingRoutes.createBookingLogic
+);
+router.get("/private/bookings", jwtAuth, bookingRoutes.getBookingsByRoleLogic);
 
 export { router };
