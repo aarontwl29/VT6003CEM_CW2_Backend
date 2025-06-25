@@ -4,32 +4,52 @@
     "user": {
       "id": "/user",
       "title": "User",
-    "description": "A user/staff in the blog",
+      "description": "A registered user or staff account",
       "type": "object",
       "properties": {
+        "firstname": {
+          "description": "First name of the user",
+          "type": "string",
+          "maxLength": 32
+        },
+        "lastname": {
+          "description": "Last name of the user",
+          "type": "string",
+          "maxLength": 32
+        },
         "username": {
-          "description": "username of blog account",
+          "description": "Unique username",
+          "type": "string",
+          "maxLength": 16
+        },
+        "about": {
+          "description": "Short personal description",
           "type": "string"
         },
         "email": {
-          "description": "email of user",
-          "type": "string"
+          "description": "Email address",
+          "type": "string",
+          "format": "email",
+          "maxLength": 64
         },
         "password": {
-          "description": "password of user",
-          "type": "password"
+          "description": "Password for login",
+          "type": "string",
+          "maxLength": 32
         },
         "avatarurl": {
-          "description": "avatar of user",
-          "type": "uri"
+          "description": "Profile picture URL",
+          "oneOf": [
+            { "type": "string", "minLength": 0 },
+            { "type": "string", "format": "uri" }
+          ]
         },
         "role": {
-          "description": "role of user",
+          "description": "User role (user, operator, admin)",
           "type": "string"
-        },
-
+        }
       },
-      "required": ["username", "password"]
+      "required": ["username", "password", "email"]
     }
   }
 }

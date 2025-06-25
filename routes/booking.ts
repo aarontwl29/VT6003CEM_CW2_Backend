@@ -1,8 +1,8 @@
-import Router, { RouterContext } from "koa-router";
+import { RouterContext } from "koa-router";
 import * as modelBooking from "../models/booking";
 import * as modelUsers from "../models/users";
 
-const router: Router = new Router({ prefix: "/api/v1/bookings" });
+// const router: Router = new Router({ prefix: "/api/v1/bookings" });
 
 // Logic: Create a booking
 export const createBookingLogic = async (ctx: RouterContext, next: any) => {
@@ -123,4 +123,4 @@ export const getBookingsByRoleLogic = async (ctx: RouterContext) => {
 };
 
 // Export the router
-export { router };
+// export { router };

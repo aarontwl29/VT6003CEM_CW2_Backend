@@ -1,0 +1,27 @@
+{
+  "source": {
+    "include": ["./routes", "./models", "./controllers"],
+    "includePattern": ".+\\.(js|ts)$"
+  },
+  "plugins": ["node_modules/jsdoc-ts-plugin"],
+  "opts": {
+    "destination": "./jsdoc-output/",
+    "recurse": true,
+    "template": "node_modules/docdash"
+  },
+  "templates": {
+    "cleverLinks": true,
+    "monospaceLinks": true
+  },
+  "docdash": {
+    "static": true,
+    "sort": true,
+    "search": true,
+    "menu": {
+      "API Documentation": {
+        "href": "https://localhost:10888/docs",
+        "target": "_blank"
+      }
+    }
+  }
+}

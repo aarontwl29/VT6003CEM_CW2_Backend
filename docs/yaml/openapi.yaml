@@ -1,273 +1,283 @@
 openapi: 3.0.0
 info:
   version: 1.0.0
-  title: Back End Demonstration API
-  description: A simple blog API.
-  contact: 
-    name: CY Cheng
-    email: cycheng@vtc.edu.hk
+  title: Hotel Booking API
+  description: API for booking hotels and managing accommodations
+  contact:
+    name: Tso Wan Lung
+    email: 247029594@stu.vtc.edu.hk
   license:
     name: Apache 2.0
-    url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
+    url: "https://www.apache.org/licenses/LICENSE-2.0.html"
 servers:
-  - url: 'https://feec368b-f2cd-4c78-ba6d-d66f03597562-00-2xj5l7c94qwox.sisko.repl.co:3000/api/v1'
+  - url: "http://localhost:10888/api/v1"
     description: Development server
 tags:
+  - name: Hotels
+    description: Hotel search and information
+  - name: Bookings
+    description: Booking management
   - name: Users
-    description: API endpoints for user management.
-  - name: Articles
-    description: Access and perform CRUD operations on blog entries.
-  - name: Login
-    description: login user account
-      
+    description: User account management
+  - name: Authentication
+    description: Login and authentication
 
 paths:
-  /users/{id}:
-    parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        required: true
-        description: Numeric id of the user
+  /hotels:
     get:
       tags:
-        - Users
-      description:
-        Get user by id.
+        - Hotels
+      summary: Get all hotels
+      description: Returns a list of all hotels with pagination
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: Maximum number of hotels to return
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Page number
       responses:
-        '200':
-          description: user record.
+        "200":
+          description: List of hotels
           content:
             application/json:
               schema:
-               type: object
-               properties:              
-               $ref: ./user.json#/definitions/user
-        '404':
-          description: User was not found in the DB.
-    put:
-      tags:
-        - Users
-      description:
-        Update user by ID.
-      requestBody:
-        description: Modify user record
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ./user.json#/definitions/user
-      responses:
-        '200':
-          description: View of an user record.
-        '404':
-          description: User was not found in the DB.
-    delete:
-      tags:
-        - Users
-      description:
-        Delete user by ID.
-      responses:
-        '200':
-          description: View of user record.
-        '404':
-          description: User was not found in the DB.
+                type: array
+                items:
+                  $ref: "#/components/schemas/Hotel"
+        "404":
+          description: No hotels found
 
-  /users/:
-    parameters:
-    - in: query
-      name: limit
-      schema:
-        type: integer
-      description: no. of  records to display with 10 records/page
-    - in: query
-      name: page
-      schema:
-        type: integer
-      description: starting page no.to display
-    - in: query
-      name: fields
-      schema:
-        type: string
-      description: fields to display
-    - in: query
-      name: q
-      schema:
-        type: string
-      description: specifiy the search criteria  for either fields of username or email
-    get:
-      tags:
-        - Users
-      description: Get all users
-      responses:
-       '200':
-         description: OK
-         content:
-           application/json:
-             schema:
-               type: array               
-               $ref: ./user.json#/definitions/user
-       '404':
-         description: Not Found  
+  /hotels/search:
     post:
       tags:
-       - Users
-      description: Create a new user
+        - Hotels
+      summary: Search hotels
+      description: Search hotels by country, city, and dates
       requestBody:
-        description: A new user data
+        description: Search criteria
         required: true
         content:
           application/json:
             schema:
-              $ref: ./user.json#/definitions/user
+              $ref: "./searchHotels.json#/definitions/searchHotels"
       responses:
-        '201':
-          description: User created
-        '400':
-          description: Bad request
-  
-  /users/login:
-    post:
-      tags:
-       - Login
-      description: Login user account
-      requestBody:
-        description: login with username and password
-        required: true
-        content:
-          application/json:
-            schema:
-             type: object
-             properties:
-              username:
-                type: string
-                description: The user name.
-              password:
-                type: string
-                description: The user password.
-      responses:
-        '200':
-          description: user record.
+        "200":
+          description: Search results
           content:
             application/json:
-             schema:
-               type: object
-               properties:   
-                 id:
-                   type: integer
-                   description: The id of user. 
-                 username:
-                   type: string
-                   description: The user name.
-                 email:
-                   type: string
-                   description: The user email.
-                 avataurl:
-                   type: string
-                   description: The user avatar url.
-                 role:
-                   type: string
-                   description: The user role.  
-                 links:
-                   type: uri
-                   description: The  link to user info by id.
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Hotel"
+        "404":
+          description: No hotels found matching the criteria
 
-        '404':
-          description: User was not found in the DB.
-        
-  /articles/{id}:
-    parameters:
-      - in: path
-        name: id
-        schema:
+  /hotels/{id}:
+    get:
+      tags:
+        - Hotels
+      summary: Get hotel by ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Hotel ID
+      responses:
+        "200":
+          description: Hotel details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Hotel"
+        "404":
+          description: Hotel not found
+
+  /hotels/{id}/rooms:
+    get:
+      tags:
+        - Hotels
+      summary: Get rooms by hotel ID
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Hotel ID
+      responses:
+        "200":
+          description: List of rooms
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Room"
+        "404":
+          description: No rooms found for this hotel
+
+  /hotels/bookings:
+    post:
+      tags:
+        - Bookings
+      summary: Create a booking
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Booking details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "./createBooking.json#/definitions/createBooking"
+      responses:
+        "201":
+          description: Booking created successfully
+        "400":
+          description: Invalid request data
+        "401":
+          description: Unauthorized
+        "500":
+          description: Failed to create booking
+
+  /hotels/private/bookings:
+    get:
+      tags:
+        - Bookings
+      summary: Get bookings by user role
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: No bookings found
+
+components:
+  schemas:
+    Hotel:
+      type: object
+      properties:
+        id:
           type: integer
-        required: true
-        description: Numeric id of the article
-    get:
-      tags:
-        - Articles
-      description:
-        Get article by id.
-      responses:
-        '200':
-          description: View of an article record.
-        '404':
-          description: Article was not found in the DB.
-    put:
-      tags:
-        - Articles
-      description:
-        Update article by ID.
-      requestBody:
-        description: A new article data
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ./article.json#/definitions/article     
-      responses:
-        '200':
-          description: View of an article record.
-        '404':
-          description: Article was not found in the DB.
-    delete:
-      tags:
-        - Articles
-      description:
-        Delete article by ID.
-      responses:
-        '200':
-          description: View of an article record.
-        '404':
-          description: Article was not found in the DB.
+          description: Unique identifier for the hotel
+        name:
+          type: string
+          description: Name of the hotel
+        description:
+          type: string
+          description: Description of the hotel
+        city:
+          type: string
+          description: City where the hotel is located
+        country:
+          type: string
+          description: Country where the hotel is located
+        address:
+          type: string
+          description: Full address of the hotel
+        rating:
+          type: number
+          format: float
+          description: Rating of the hotel (0-5)
+        review_count:
+          type: integer
+          description: Number of reviews
+        image_url:
+          type: string
+          description: URL of the hotel image
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              description: Link to hotel details
 
-  /articles/: 
-    get:
-      tags:
-      - Articles
-      description: Get all articles
-      responses:
-        '200':
-          description: articles record.
-          content:
-            application/json:
-             schema:
-               type: object 
-               properties:   
-                 id:
-                   type: integer
-                   description: The id of article. 
-                 title:
-                   type: string
-                   description: The title of article.
-                 imageurl:
-                   type: string
-                   description: The link to image of article.
-                 summary:
-                   type: string
-                   description: summary of articles
-                 authorid:
-                   type: integer 
-                   description: The id of author.  
-                 links:
-                   type: uri array object
-                   description: include four links to likes,fav,msg and self with articleid respectively eg.articleid=1 [{"likes":"https://xxx:3000/api/v1/articles/1/likes"},{"fav":"https://xxx:3000/api/v1/articles/1/fav"},{"msg":"https://xxx:3000/api/v1/articles/1/msg"},{"self":"https:xxx:3000/api/v1/articles/1"}]
-          '404':
-            description: Not Found  
-    post:
-      tags:
-       - Articles
-      description: Create a new article
-      requestBody:
-        description: A new article data
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ./article.json#/definitions/article
-      responses:
-        '201':
-          description: Articles created
-        '400':
-          description: Bad request
+    Room:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the room
+        hotel_id:
+          type: integer
+          description: ID of the hotel this room belongs to
+        capacity:
+          type: integer
+          description: Maximum number of guests
+        bed_option:
+          type: string
+          description: Bed configuration (e.g., "1 King Bed")
+        amenities:
+          type: array
+          items:
+            type: string
+          description: List of amenities
+        price_per_night:
+          type: number
+          format: float
+          description: Standard price per night
+        has_discount:
+          type: boolean
+          description: Whether the room has a discount
+        discount_rate:
+          type: number
+          format: float
+          description: Discount percentage (0.0-1.0)
+        actual_price:
+          type: number
+          format: float
+          description: Price after discount
+
+    Booking:
+      type: object
+      properties:
+        booking_id:
+          type: integer
+          description: Unique identifier for the booking
+        user_id:
+          type: integer
+          description: ID of the user who made the booking
+        start_date:
+          type: string
+          format: date
+          description: Check-in date
+        end_date:
+          type: string
+          format: date
+          description: Check-out date
+        staff_email:
+          type: string
+          nullable: true
+          description: Email of the assigned staff member
+        first_message:
+          type: string
+          description: Initial message from the user
+        rooms:
+          type: array
+          items:
+            $ref: "#/components/schemas/Room"
+          description: List of rooms in the booking
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

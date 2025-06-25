@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "createBooking": {
+      "id": "/createBooking",
+      "title": "Create Booking",
+      "description": "Schema for creating a booking",
+      "type": "object",
+      "properties": {
+        "start_date": {
+          "description": "Start date of the booking",
+          "type": "string",
+          "format": "date"
+        },
+        "end_date": {
+          "description": "End date of the booking",
+          "type": "string",
+          "format": "date"
+        },
+        "staff_email": {
+          "description": "Email of the staff assigned to the booking (optional)",
+          "type": ["string", "null"],
+          "format": "email"
+        },
+        "first_message": {
+          "description": "Initial message from the user",
+          "type": "string"
+        },
+        "room_ids": {
+          "description": "List of room IDs associated with the booking",
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 1
+        }
+      },
+      "required": ["start_date", "end_date", "first_message", "room_ids"]
+    }
+  }
+}

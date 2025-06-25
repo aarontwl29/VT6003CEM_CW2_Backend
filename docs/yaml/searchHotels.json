@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "searchHotels": {
+      "id": "/searchHotels",
+      "title": "Search Hotels",
+      "description": "Schema for searching hotels",
+      "type": "object",
+      "properties": {
+        "country": {
+          "description": "Country where the hotel is located",
+          "type": "string"
+        },
+        "city": {
+          "description": "City where the hotel is located",
+          "type": "string"
+        },
+        "start_date": {
+          "description": "Start date for the hotel booking",
+          "type": "string",
+          "format": "date"
+        },
+        "end_date": {
+          "description": "End date for the hotel booking",
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "required": []
+    }
+  }
+}
