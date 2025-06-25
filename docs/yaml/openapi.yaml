@@ -170,6 +170,26 @@ paths:
         "404":
           description: No bookings found
 
+  /hotels/update/bookings:
+    post:
+      tags:
+        - Bookings
+      summary: Update a booking
+      description: Updates the booking details, room statuses, and adds a message.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "./updateBooking.json#/definitions/updateBooking"
+      responses:
+        200:
+          description: Booking updated successfully
+        400:
+          description: Validation failed
+        500:
+          description: Internal server error
+
 components:
   schemas:
     Hotel:

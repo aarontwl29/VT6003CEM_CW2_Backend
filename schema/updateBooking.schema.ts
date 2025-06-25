@@ -1,0 +1,59 @@
+export const updateBookingSchema = {
+  $schema: "http://json-schema.org/draft-04/schema#",
+  id: "/updateBooking",
+  title: "Update Booking",
+  description: "Schema for updating a booking",
+  type: "object",
+  properties: {
+    booking_id: {
+      description: "ID of the booking to be updated",
+      type: "integer",
+    },
+    start_date: {
+      description: "Updated start date of the booking",
+      type: "string",
+      format: "date",
+    },
+    end_date: {
+      description: "Updated end date of the booking",
+      type: "string",
+      format: "date",
+    },
+    room_updates: {
+      description: "List of room updates with status and room ID",
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          room_id: {
+            description: "ID of the room to be updated",
+            type: "integer",
+          },
+          status: {
+            description: "Updated status of the room",
+            type: "string",
+            enum: ["pending", "approved", "cancelled"],
+          },
+        },
+        required: ["room_id", "status"],
+      },
+      minItems: 1,
+    },
+    recipient_id: {
+      description: "ID of the user receiving the update",
+      type: "integer",
+    },
+    message: {
+      description: "Message describing the update",
+      type: "string",
+    },
+  },
+  required: [
+    "booking_id",
+    "start_date",
+    "end_date",
+    "room_updates",
+    "recipient_id",
+    "message",
+  ],
+};
