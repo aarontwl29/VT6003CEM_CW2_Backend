@@ -3,6 +3,7 @@ import { validateUser } from "../controllers/validation";
 import Router, { RouterContext } from "koa-router";
 import bodyParser from "koa-bodyparser";
 import * as model from "../models/users";
+import * as bookingRoutes from "./booking";
 import bcrypt from "bcryptjs";
 
 const prefix = "/api/v1/users";
@@ -64,21 +65,6 @@ const doSearch = async (ctx: any, next: any) => {
       return error;
     }
     await next();
-  } else {
-    ctx.body = { msg: ` ${ctx.state.user.user.role} role is not authorized` };
-    ctx.status = 401;
-  }
-};
-
-const getById = async (ctx: any, next: any) => {
-  let id = ctx.params.id;
-  console.log("user.id " + ctx.state.user.user.id);
-  console.log("params.id " + id);
-  if (ctx.state.user.user.role === "admin" || ctx.state.user.user.id == id) {
-    let user = await model.getByUserId(id);
-    if (user.length) {
-      ctx.body = user[0];
-    }
   } else {
     ctx.body = { msg: ` ${ctx.state.user.user.role} role is not authorized` };
     ctx.status = 401;
@@ -293,7 +279,6 @@ export const getRole = async (ctx: RouterContext) => {
 // router.get("/", basicAuth, doSearch);
 //router.get('/search', basicAuth, doSearch);
 
-// router.get("/:id([0-9]{1,})", basicAuth, getById);
 // router.put("/:id([0-9]{1,})", basicAuth, bodyParser(), updateUser);
 // router.del("/:id([0-9]{1,})", basicAuth, deleteUser);
 // router.post("/login", basicAuth, login);
@@ -302,5 +287,10 @@ router.post("/login", bodyParser(), login);
 router.post("/public/register", bodyParser(), validateUser, createPublicUser);
 router.post("/staff/register", bodyParser(), validateUser, createStaffUser);
 router.get("/public/role", jwtAuth, getRole);
+router.get(
+  "/booking/:id([0-9]{1,})",
+  jwtAuth,
+  bookingRoutes.getUserInfoById_BookingList
+);
 
 export { router };

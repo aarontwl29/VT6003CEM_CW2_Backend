@@ -72,15 +72,15 @@ export const getBookingsByRoleLogic = async (ctx: RouterContext) => {
 
   try {
     type UserData = { role: string; email: string };
-    const userData = (await modelUsers.getByUserId(user.id)) as UserData[];
-    if (!userData || !userData[0]?.role) {
+    const userData = (await modelUsers.getByUserId(user.id)) as UserData | null;
+    if (!userData || !userData.role) {
       ctx.status = 404;
       ctx.body = { message: "User role not found" };
       return;
     }
 
-    const userRole = userData[0].role;
-    const userEmail = userData[0].email;
+    const userRole = userData.role;
+    const userEmail = userData.email;
 
     let bookings;
 
@@ -122,5 +122,46 @@ export const getBookingsByRoleLogic = async (ctx: RouterContext) => {
   }
 };
 
-// Export the router
-// export { router };
+export const getUserInfoById_BookingList = async (ctx: RouterContext) => {
+  try {
+    // Extract user ID from URL parameters
+    const user_id = parseInt(ctx.params.id, 10);
+    if (isNaN(user_id) || user_id <= 0) {
+      ctx.status = 400;
+      ctx.body = { message: "Invalid or missing user ID" };
+      return;
+    }
+
+    // Check user role from JWT token
+    const userRole = ctx.state.user?.role;
+    if (userRole !== "admin" && userRole !== "operator") {
+      ctx.status = 403;
+      ctx.body = { message: "Access denied: User is not an admin or operator" };
+      return;
+    }
+
+    // Fetch user data using the model function
+    const userData = await modelUsers.getByUserId(user_id);
+    if (!userData) {
+      ctx.status = 404;
+      ctx.body = { message: `User with ID ${user_id} not found` };
+      return;
+    }
+
+    // Respond with specific fields for security
+    ctx.status = 200;
+    ctx.body = {
+      username: userData.username,
+      firstname: userData.firstname,
+      lastname: userData.lastname,
+      email: userData.email,
+      avatarurl: userData.avatarurl,
+    };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = {
+      message: "Failed to fetch user info",
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+};

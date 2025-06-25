@@ -1,5 +1,17 @@
 import * as db from "../helpers/database";
 
+export interface User {
+  id: number;
+  firstname: string;
+  lastname: string;
+  username: string;
+  about: string | null;
+  email: string;
+  password: string;
+  avatarurl: string | null;
+  role: string; // Role of the user ('admin', 'operator', 'user', etc.)
+}
+
 export const getAll = async (limit = 10, page = 1) => {
   const offset = (page - 1) * limit;
   const query = "SELECT * FROM users LIMIT  ? OFFSET  ?;";
@@ -17,11 +29,24 @@ export const getSearch = async (sfield: any, q: any) => {
   }
 };
 
-export const getByUserId = async (id: number) => {
-  let query = "SELECT * FROM users WHERE id = ?";
-  let values = [id];
-  let data = await db.run_query(query, values);
-  return data;
+export const getByUserId = async (id: number): Promise<User | null> => {
+  const query = "SELECT * FROM users WHERE id = ?;";
+  const values = [id];
+
+  try {
+    const data = await db.run_query(query, values);
+    if (data.length === 0) {
+      return null; // Return null if no user is found
+    }
+    return data[0] as User;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error in getByUserId:", error.message);
+    } else {
+      console.error("Error in getByUserId:", error);
+    }
+    throw error;
+  }
 };
 
 export const findByUsername = async (username: string) => {
