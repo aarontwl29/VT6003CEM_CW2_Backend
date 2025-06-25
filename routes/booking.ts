@@ -165,3 +165,63 @@ export const getUserInfoById_BookingList = async (ctx: RouterContext) => {
     };
   }
 };
+
+// Route: Update booking
+export const updateBookingRoute = async (ctx: RouterContext, next: any) => {
+  const staff_id = ctx.state.user?.id; // Extract staff ID from JWT token
+  const {
+    booking_id,
+    start_date,
+    end_date,
+    room_updates,
+    recipient_id,
+    message,
+  } = ctx.request.body as {
+    booking_id: number;
+    start_date: string;
+    end_date: string;
+    room_updates: {
+      room_id: number;
+      status: "pending" | "approved" | "cancelled";
+    }[];
+    recipient_id: number; // User ID
+    message: string;
+  };
+
+  if (
+    !staff_id ||
+    !booking_id ||
+    !start_date ||
+    !end_date ||
+    !room_updates ||
+    !recipient_id ||
+    !message
+  ) {
+    ctx.status = 400;
+    ctx.body = { message: "Missing required fields" };
+    return;
+  }
+
+  try {
+    const result = await modelBooking.updateBooking(
+      booking_id,
+      start_date,
+      end_date,
+      room_updates.map((room) => ({ ...room, staff_id })), // Add staff_id to each room update
+      staff_id,
+      recipient_id,
+      message
+    );
+
+    ctx.status = 200;
+    ctx.body = result;
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = {
+      message: "Failed to update booking",
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+
+  await next();
+};

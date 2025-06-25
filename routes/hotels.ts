@@ -184,5 +184,11 @@ router.post(
   bookingRoutes.createBookingLogic
 );
 router.get("/private/bookings", jwtAuth, bookingRoutes.getBookingsByRoleLogic);
+router.post(
+  "/update/bookings",
+  bodyParser(),
+  jwtAuth,
+  bookingRoutes.updateBookingRoute
+);
 
 export { router };

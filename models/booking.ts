@@ -138,3 +138,62 @@ export const getBookingRoomsByBookingId = async (booking_id: number) => {
     throw error;
   }
 };
+
+export const updateBooking = async (
+  booking_id: number,
+  start_date: string,
+  end_date: string,
+  room_updates: {
+    room_id: number;
+    status: "pending" | "approved" | "cancelled";
+    staff_id: number;
+  }[],
+  sender_id: number, // Staff ID
+  recipient_id: number, // User ID
+  message: string
+) => {
+  const updateBookingQuery = `
+    UPDATE bookings
+    SET start_date = ?, end_date = ?
+    WHERE id = ?;
+  `;
+
+  const updateRoomStatusQuery = `
+    UPDATE booking_rooms
+    SET status = ?, staff_id = ?
+    WHERE booking_id = ? AND room_id = ?;
+  `;
+
+  const insertMessageQuery = `
+    INSERT INTO messages (booking_id, sender_id, recipient_id, message)
+    VALUES (?, ?, ?, ?);
+  `;
+
+  try {
+    // Update booking start and end dates
+    await db.run_query(updateBookingQuery, [start_date, end_date, booking_id]);
+
+    // Update room statuses and record staff ID
+    for (const room of room_updates) {
+      await db.run_query(updateRoomStatusQuery, [
+        room.status,
+        room.staff_id,
+        booking_id,
+        room.room_id,
+      ]);
+    }
+
+    // Insert a new message
+    await db.run_query(insertMessageQuery, [
+      booking_id,
+      sender_id,
+      recipient_id,
+      message,
+    ]);
+
+    return { message: "Booking updated successfully" };
+  } catch (error) {
+    console.error("Error in updateBooking:", error);
+    throw error;
+  }
+};
