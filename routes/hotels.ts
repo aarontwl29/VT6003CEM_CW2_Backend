@@ -4,6 +4,7 @@ import { jwtAuth } from "../controllers/authJWT";
 import * as modelHotels from "../models/hotels";
 import * as bookingRoutes from "./booking";
 import { validateSearchHotels } from "../controllers/validation";
+import { validateCreateBooking } from "../controllers/validation";
 
 const router: Router = new Router({ prefix: "/api/v1/hotels" });
 
@@ -179,6 +180,7 @@ router.post(
   "/bookings",
   bodyParser(),
   jwtAuth,
+  validateCreateBooking,
   bookingRoutes.createBookingLogic
 );
 router.get("/private/bookings", jwtAuth, bookingRoutes.getBookingsByRoleLogic);
