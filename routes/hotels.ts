@@ -1,7 +1,8 @@
 import Router, { RouterContext } from "koa-router";
 import bodyParser from "koa-bodyparser";
-import * as model from "../models/hotels";
 import { jwtAuth } from "../controllers/authJWT";
+import * as modelUsers from "../models/users";
+import * as model from "../models/hotels";
 
 const router: Router = new Router({ prefix: "/api/v1/hotels" });
 
@@ -232,6 +233,63 @@ const createBooking = async (ctx: RouterContext, next: any) => {
   await next();
 };
 
+export const getBookingsByRole = async (ctx: RouterContext) => {
+  const user = ctx.state.user;
+
+  if (!user || !user.id) {
+    ctx.status = 400;
+    ctx.body = { message: "Invalid token or user ID not found in token" };
+    return;
+  }
+
+  try {
+    // Fetch the user role and email using the user ID
+    type UserData = { role: string; email: string };
+    const userData = (await modelUsers.getByUserId(user.id)) as UserData[];
+    if (!userData || !userData[0]?.role) {
+      ctx.status = 404;
+      ctx.body = { message: "User role not found" };
+      return;
+    }
+
+    const userRole = userData[0].role;
+    const userEmail = userData[0].email;
+
+    let data;
+
+    // Handle different roles
+    if (userRole === "admin" || userRole === "operator") {
+      // Admin/Operator logic: Fetch all bookings
+      data = await model.getBookingsForStaff(userEmail);
+    } else if (userRole === "user") {
+      // User logic: Fetch bookings specific to the user's user ID
+      data = await model.getBookingsByUserId(user.id);
+    } else {
+      ctx.status = 403;
+      ctx.body = { message: "Unauthorized role" };
+      return;
+    }
+
+    if (data.length) {
+      ctx.status = 200;
+      ctx.body = data;
+    } else {
+      ctx.status = 404;
+      ctx.body = { message: "No bookings found" };
+    }
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = {
+      message: "Failed to load bookings",
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+};
+
+// Add the route to the router
+router.get("/private/bookings", jwtAuth, getBookingsByRole);
+
+// Add routes to the router
 router.get("/", getAll);
 router.post("/search", bodyParser(), searchHotels);
 router.get("/:id", getHotelById);

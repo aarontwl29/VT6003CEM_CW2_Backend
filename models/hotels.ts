@@ -7,77 +7,6 @@ export const getAll = async (limit = 10, page = 1) => {
   return data;
 };
 
-// export const getSearch = async (filters: {
-//   country?: string;
-//   city?: string;
-//   start_date?: string;
-//   end_date?: string;
-// }) => {
-//   const conditions: string[] = [];
-//   const values: any[] = [];
-
-//   if (filters.country) {
-//     conditions.push("h.country = ?");
-//     values.push(filters.country);
-//   }
-
-//   if (filters.city) {
-//     conditions.push("h.city = ?");
-//     values.push(filters.city);
-//   }
-
-//   if (filters.start_date && filters.end_date) {
-//     conditions.push(`
-//       NOT EXISTS (
-//         SELECT 1
-//         FROM bookings b
-//         WHERE b.room_id = r.id
-//           AND b.start_date <= ?
-//           AND b.end_date >= ?
-//       )
-//     `);
-//     values.push(filters.start_date, filters.end_date);
-//   }
-
-//   const query = `
-//     SELECT
-//       h.name AS hotel_name,
-//       h.review_count,
-//       h.rating AS star,
-//       h.country,
-//       h.city,
-//       h.address,
-//       r.has_discount,
-//       CASE
-//         WHEN r.has_discount THEN r.price_per_night * (1 - r.discount_rate)
-//         ELSE r.price_per_night
-//       END AS price_per_night,
-//       r.capacity,
-//       r.bed_option,
-//       r.amenities
-//     FROM
-//       hotels h
-//     JOIN
-//       rooms r ON h.id = r.hotel_id
-//     WHERE
-//       r.capacity >= 2 -- Only rooms with capacity of at least 2
-//       ${conditions.length ? "AND " + conditions.join(" AND ") : ""}
-//     ORDER BY
-//       CASE
-//         WHEN r.has_discount THEN r.price_per_night * (1 - r.discount_rate)
-//         ELSE r.price_per_night
-//       END ASC -- Sort by the cheapest price (including discount)
-//     LIMIT 1; -- Only return the cheapest room
-//   `;
-
-//   try {
-//     const data = await db.run_query(query, values);
-//     return data;
-//   } catch (error) {
-//     return error;
-//   }
-// };
-
 export const getHotels = async (filters: {
   country?: string;
   city?: string;
@@ -258,8 +187,8 @@ export const addRoomsToBooking = async (
   }
 };
 
-// Retrieve booking details by ID
-export const getBookingById = async (booking_id: number) => {
+// Retrieve all bookings for staff
+export const getBookingsForStaff = async (staff_email: string) => {
   const query = `
     SELECT 
       b.id AS booking_id,
@@ -267,60 +196,90 @@ export const getBookingById = async (booking_id: number) => {
       b.start_date,
       b.end_date,
       b.staff_email,
-      b.first_message,
-      br.room_id,
-      r.hotel_id,
-      r.capacity,
-      r.bed_option,
-      r.amenities,
-      r.price_per_night
+      b.first_message
     FROM 
       bookings b
-    LEFT JOIN 
-      booking_rooms br ON b.id = br.booking_id
-    LEFT JOIN 
-      rooms r ON br.room_id = r.id
     WHERE 
-      b.id = ?;
+      b.staff_email IS NULL OR b.staff_email = ? OR b.staff_email = ''
+    ORDER BY 
+      b.start_date DESC, b.end_date DESC;
   `;
+
   try {
-    const data = await db.run_query(query, [booking_id]);
-    return data.length ? data : null; // Return booking details
+    const data = await db.run_query(query, [staff_email]);
+    return data;
   } catch (error) {
-    console.error("Error retrieving booking details:", error);
+    console.error("Error retrieving bookings for staff:", error);
     throw error;
   }
 };
 
-// Retrieve all bookings for a user
+// For public users, retrieve bookings by user ID
+// This function is used to retrieve bookings for a specific user
 export const getBookingsByUserId = async (user_id: number) => {
   const query = `
     SELECT 
       b.id AS booking_id,
+      b.user_id,
       b.start_date,
       b.end_date,
       b.staff_email,
-      b.first_message,
-      br.room_id,
+      b.first_message
+    FROM 
+      bookings b
+    WHERE 
+      b.user_id = ?
+    ORDER BY 
+      b.start_date DESC, b.end_date DESC;
+  `;
+
+  try {
+    const data = await db.run_query(query, [user_id]);
+    return data;
+  } catch (error) {
+    console.error("Error retrieving bookings for user:", error);
+    throw error;
+  }
+};
+
+// Retrieve booking rooms for a specific booking
+export const getBookingRoomsByBookingId = async (booking_id: number) => {
+  const query = `
+    SELECT 
+      br.id AS booking_room_id,
+      br.status AS booking_status,
+      r.id AS room_id,
       r.hotel_id,
       r.capacity,
       r.bed_option,
       r.amenities,
-      r.price_per_night
+      r.price_per_night,
+      r.has_discount,
+      r.discount_rate,
+      CASE
+        WHEN r.has_discount THEN r.price_per_night * (1 - r.discount_rate)
+        ELSE r.price_per_night
+      END AS actual_price,
+      h.name AS hotel_name,
+      h.city AS hotel_city,
+      h.country AS hotel_country
     FROM 
-      bookings b
-    LEFT JOIN 
-      booking_rooms br ON b.id = br.booking_id
+      booking_rooms br
     LEFT JOIN 
       rooms r ON br.room_id = r.id
+    LEFT JOIN 
+      hotels h ON r.hotel_id = h.id
     WHERE 
-      b.user_id = ?;
+      br.booking_id = ?
+    ORDER BY 
+      r.price_per_night ASC;
   `;
+
   try {
-    const data = await db.run_query(query, [user_id]);
-    return data.length ? data : null; // Return all bookings for the user
+    const data = await db.run_query(query, [booking_id]);
+    return data;
   } catch (error) {
-    console.error("Error retrieving bookings for user:", error);
+    console.error("Error retrieving booking rooms:", error);
     throw error;
   }
 };
