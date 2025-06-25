@@ -255,24 +255,37 @@ export const getBookingsByRole = async (ctx: RouterContext) => {
     const userRole = userData[0].role;
     const userEmail = userData[0].email;
 
-    let data;
+    let bookings;
 
     // Handle different roles
     if (userRole === "admin" || userRole === "operator") {
       // Admin/Operator logic: Fetch all bookings
-      data = await model.getBookingsForStaff(userEmail);
+      bookings = await model.getBookingsForStaff(userEmail);
     } else if (userRole === "user") {
       // User logic: Fetch bookings specific to the user's user ID
-      data = await model.getBookingsByUserId(user.id);
+      bookings = await model.getBookingsByUserId(user.id);
     } else {
       ctx.status = 403;
       ctx.body = { message: "Unauthorized role" };
       return;
     }
 
-    if (data.length) {
+    if (bookings.length) {
+      // Fetch room details for each booking
+      const bookingsWithRooms = await Promise.all(
+        bookings.map(async (booking: any) => {
+          const rooms = await model.getBookingRoomsByBookingId(
+            booking.booking_id
+          );
+          return {
+            ...booking,
+            rooms, // Include room details
+          };
+        })
+      );
+
       ctx.status = 200;
-      ctx.body = data;
+      ctx.body = bookingsWithRooms;
     } else {
       ctx.status = 404;
       ctx.body = { message: "No bookings found" };
@@ -286,14 +299,12 @@ export const getBookingsByRole = async (ctx: RouterContext) => {
   }
 };
 
-// Add the route to the router
-router.get("/private/bookings", jwtAuth, getBookingsByRole);
-
 // Add routes to the router
 router.get("/", getAll);
 router.post("/search", bodyParser(), searchHotels);
 router.get("/:id", getHotelById);
 router.get("/:id/rooms", getRoomsByHotelId);
 router.post("/bookings", bodyParser(), jwtAuth, createBooking);
+router.get("/private/bookings", jwtAuth, getBookingsByRole);
 
 export { router };
