@@ -1,4 +1,3 @@
-import { basicAuth } from "../controllers/auth";
 import { generateToken, jwtAuth } from "../controllers/authJWT";
 import { validateUser } from "../controllers/validation";
 import Router, { RouterContext } from "koa-router";
@@ -200,17 +199,22 @@ export const createStaffUser = async (ctx: any) => {
 };
 
 export const login = async (ctx: RouterContext) => {
-  const body = ctx.request.body as { username: string; password: string }; // Explicitly define the type for `body`
+  const body = ctx.request.body as { username: string; password: string };
   const { username, password } = body;
 
   try {
     // Fetch user by username from the database
     const user = (await model.findByUsername(username)) as {
       id: number;
+      firstname: string;
+      lastname: string;
       username: string;
+      about: string;
+      email: string;
       password: string;
+      avatarurl: string;
       role: string;
-    }[]; // Explicitly define the type for `user`
+    }[];
 
     // Check if user exists
     if (!user.length) {
@@ -236,11 +240,21 @@ export const login = async (ctx: RouterContext) => {
     // Generate token using authJWT
     const token = generateToken(payload);
 
-    // Respond with the token
+    // Respond with the token and user details (excluding password)
     ctx.status = 200;
     ctx.body = {
       message: "Login successful",
       token,
+      user: {
+        id: user[0].id,
+        firstname: user[0].firstname,
+        lastname: user[0].lastname,
+        username: user[0].username,
+        about: user[0].about,
+        email: user[0].email,
+        avatarurl: user[0].avatarurl,
+        role: user[0].role,
+      },
     };
   } catch (error) {
     // Handle unexpected errors
@@ -276,12 +290,12 @@ export const getRole = async (ctx: RouterContext) => {
   }
 };
 
-router.get("/", basicAuth, doSearch);
+// router.get("/", basicAuth, doSearch);
 //router.get('/search', basicAuth, doSearch);
 
-router.get("/:id([0-9]{1,})", basicAuth, getById);
-router.put("/:id([0-9]{1,})", basicAuth, bodyParser(), updateUser);
-router.del("/:id([0-9]{1,})", basicAuth, deleteUser);
+// router.get("/:id([0-9]{1,})", basicAuth, getById);
+// router.put("/:id([0-9]{1,})", basicAuth, bodyParser(), updateUser);
+// router.del("/:id([0-9]{1,})", basicAuth, deleteUser);
 // router.post("/login", basicAuth, login);
 // new
 router.post("/login", bodyParser(), login);

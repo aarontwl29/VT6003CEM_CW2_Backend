@@ -215,3 +215,112 @@ export const getRoomsByHotelId = async (hotel_id: number) => {
     return error;
   }
 };
+
+// Create a new booking
+export const createBooking = async (
+  user_id: number,
+  start_date: string,
+  end_date: string,
+  staff_email: string | null,
+  first_message: string
+) => {
+  const query = `
+    INSERT INTO bookings (user_id, start_date, end_date, staff_email, first_message)
+    VALUES (?, ?, ?, ?, ?)
+    RETURNING id;
+  `;
+  const values = [user_id, start_date, end_date, staff_email, first_message];
+  try {
+    const result = (await db.run_query(query, values)) as { id: number }[];
+    return result.length ? result[0].id : null; // Return the booking ID
+  } catch (error) {
+    console.error("Error in createBooking:", error); // Log the error
+    throw error;
+  }
+};
+
+// Associate rooms with a booking
+export const addRoomsToBooking = async (
+  booking_id: number,
+  room_ids: number[]
+) => {
+  const query = `
+    INSERT INTO booking_rooms (booking_id, room_id)
+    VALUES ${room_ids.map(() => "(?, ?)").join(", ")};
+  `;
+  const values = room_ids.flatMap((room_id) => [booking_id, room_id]);
+  try {
+    await db.run_query(query, values);
+    return true;
+  } catch (error) {
+    console.error("Error in addRoomsToBooking:", error); // Log the error
+    throw error;
+  }
+};
+
+// Retrieve booking details by ID
+export const getBookingById = async (booking_id: number) => {
+  const query = `
+    SELECT 
+      b.id AS booking_id,
+      b.user_id,
+      b.start_date,
+      b.end_date,
+      b.staff_email,
+      b.first_message,
+      br.room_id,
+      r.hotel_id,
+      r.capacity,
+      r.bed_option,
+      r.amenities,
+      r.price_per_night
+    FROM 
+      bookings b
+    LEFT JOIN 
+      booking_rooms br ON b.id = br.booking_id
+    LEFT JOIN 
+      rooms r ON br.room_id = r.id
+    WHERE 
+      b.id = ?;
+  `;
+  try {
+    const data = await db.run_query(query, [booking_id]);
+    return data.length ? data : null; // Return booking details
+  } catch (error) {
+    console.error("Error retrieving booking details:", error);
+    throw error;
+  }
+};
+
+// Retrieve all bookings for a user
+export const getBookingsByUserId = async (user_id: number) => {
+  const query = `
+    SELECT 
+      b.id AS booking_id,
+      b.start_date,
+      b.end_date,
+      b.staff_email,
+      b.first_message,
+      br.room_id,
+      r.hotel_id,
+      r.capacity,
+      r.bed_option,
+      r.amenities,
+      r.price_per_night
+    FROM 
+      bookings b
+    LEFT JOIN 
+      booking_rooms br ON b.id = br.booking_id
+    LEFT JOIN 
+      rooms r ON br.room_id = r.id
+    WHERE 
+      b.user_id = ?;
+  `;
+  try {
+    const data = await db.run_query(query, [user_id]);
+    return data.length ? data : null; // Return all bookings for the user
+  } catch (error) {
+    console.error("Error retrieving bookings for user:", error);
+    throw error;
+  }
+};

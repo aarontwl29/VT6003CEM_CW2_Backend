@@ -22,17 +22,32 @@ CREATE TABLE rooms (
 );
 
 
--- CREATE TABLE bookings (
---   id SERIAL PRIMARY KEY,
---   room_id INT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
---   user_id INT NOT NULL,                  -- Assuming a users table exists
---   start_date DATE NOT NULL,
---   end_date DATE NOT NULL,
---   total_price DECIMAL(10,2) NOT NULL,
---   booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
--- );
+CREATE TABLE bookings (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE, 
+  start_date DATE NOT NULL,                                    
+  end_date DATE NOT NULL,                                     
+  staff_email VARCHAR(255),
+  first_message TEXT 
+);
 
 
+CREATE TYPE booking_status AS ENUM ('pending', 'approved', 'cancelled'); 
+CREATE TABLE booking_rooms (
+  id SERIAL PRIMARY KEY,
+  booking_id INT NOT NULL REFERENCES bookings(id) ON DELETE CASCADE, 
+  room_id INT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,      
+  status booking_status DEFAULT 'pending',                          -- Status of the booking (pending, approved, cancelled)
+  staff_id INT REFERENCES users(id) ON DELETE CASCADE               -- Staff who approved or cancelled the booking
+);
+
+CREATE TABLE messages (
+  id SERIAL PRIMARY KEY,                                      
+  booking_id INT NOT NULL REFERENCES bookings(id) ON DELETE CASCADE, 
+  sender_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,     -- ID of the sender (user or staff)
+  recipient_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,  -- ID of the recipient (user or staff)
+  message TEXT NOT NULL                                      
+);
 
 
 INSERT INTO hotels (name, description, city, country, address, rating, review_count, image_url) VALUES

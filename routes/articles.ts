@@ -5,8 +5,6 @@ import * as likes from "../models/likes";
 import * as favs from "../models/favs";
 import * as msgs from "../models/msgs";
 
-import { basicAuth } from "../controllers/auth";
-
 interface Post {
   id: number;
   title: string;
@@ -256,16 +254,16 @@ router.get("/:id([0-9]{1,})", getById);
 //   validateArticle,
 //   updateArticle
 // );
-router.delete("/:id([0-9]{1,})", basicAuth, deleteArticle);
-router.get("/:id([0-9]{1,})/likes", likesCount);
-router.post("/:id([0-9]{1,})/likes", basicAuth, likePost);
-router.del("/:id([0-9]{1,})/likes", basicAuth, dislikePost);
+// router.delete("/:id([0-9]{1,})", basicAuth, deleteArticle);
+// router.get("/:id([0-9]{1,})/likes", likesCount);
+// router.post("/:id([0-9]{1,})/likes", basicAuth, likePost);
+// router.del("/:id([0-9]{1,})/likes", basicAuth, dislikePost);
 
-router.get("/fav", basicAuth, userFav);
-router.post("/:id([0-9]{1,})/fav", basicAuth, postFav);
-router.del("/:id([0-9]{1,})/fav", basicAuth, rmFav);
+// router.get("/fav", basicAuth, userFav);
+// router.post("/:id([0-9]{1,})/fav", basicAuth, postFav);
+// router.del("/:id([0-9]{1,})/fav", basicAuth, rmFav);
 
-router.get("/:id([0-9]{1,})/msg", listMsg);
-router.post("/:id([0-9]{1,})/msg", basicAuth, bodyParser(), addMsg);
-router.del("/:id([0-9]{1,})/msg", basicAuth, bodyParser(), rmMsg);
+// router.get("/:id([0-9]{1,})/msg", listMsg);
+// router.post("/:id([0-9]{1,})/msg", basicAuth, bodyParser(), addMsg);
+// router.del("/:id([0-9]{1,})/msg", basicAuth, bodyParser(), rmMsg);
 export { router };
