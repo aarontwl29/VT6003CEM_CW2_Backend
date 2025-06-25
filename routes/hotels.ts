@@ -2,9 +2,8 @@ import Router, { RouterContext } from "koa-router";
 import bodyParser from "koa-bodyparser";
 import { jwtAuth } from "../controllers/authJWT";
 import * as modelHotels from "../models/hotels";
-import * as modelBooking from "../models/booking";
-import * as modelUsers from "../models/users";
-import * as bookingRoutes from "./booking"; // Import booking logic
+import * as bookingRoutes from "./booking";
+import { validateSearchHotels } from "../controllers/validation";
 
 const router: Router = new Router({ prefix: "/api/v1/hotels" });
 
@@ -173,7 +172,7 @@ const getRoomsByHotelId = async (ctx: RouterContext, next: any) => {
 
 // Add routes to the router
 router.get("/", getAll);
-router.post("/search", bodyParser(), searchHotels);
+router.post("/search", bodyParser(), validateSearchHotels, searchHotels);
 router.get("/:id", getHotelById);
 router.get("/:id/rooms", getRoomsByHotelId);
 router.post(

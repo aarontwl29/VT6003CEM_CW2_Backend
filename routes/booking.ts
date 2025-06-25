@@ -1,6 +1,4 @@
 import Router, { RouterContext } from "koa-router";
-import bodyParser from "koa-bodyparser";
-import { jwtAuth } from "../controllers/authJWT";
 import * as modelBooking from "../models/booking";
 import * as modelUsers from "../models/users";
 
