@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "addFavourite": {
+      "id": "/addFavourite",
+      "title": "Add Favourite",
+      "description": "Schema for adding a hotel to favourites",
+      "type": "object",
+      "properties": {
+        "hotel_id": {
+          "description": "ID of the hotel to be added to favourites",
+          "type": "integer"
+        }
+      },
+      "required": ["hotel_id"]
+    },
+    "deleteFavourite": {
+      "id": "/deleteFavourite",
+      "title": "Delete Favourite",
+      "description": "Schema for removing a hotel from favourites",
+      "type": "object",
+      "properties": {
+        "hotel_id": {
+          "description": "ID of the hotel to be removed from favourites",
+          "type": "integer"
+        }
+      },
+      "required": ["hotel_id"]
+    },
+    "listFavourites": {
+      "id": "/listFavourites",
+      "title": "List Favourites",
+      "description": "Schema for listing all favourite hotels for a user",
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "description": "ID of the user whose favourites are being listed",
+          "type": "integer"
+        }
+      },
+      "required": ["user_id"]
+    }
+  }
+}

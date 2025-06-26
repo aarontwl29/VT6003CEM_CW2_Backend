@@ -18,6 +18,11 @@ CREATE TABLE signup_codes (
   generated_for TEXT
 );
 
+CREATE TABLE favourites (
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE, 
+  hotel_id INT NOT NULL REFERENCES hotels(id) ON DELETE CASCADE, 
+  PRIMARY KEY (user_id, hotel_id) 
+);
 
 INSERT INTO users (username, email, password, role, avatarurl) VALUES
 ('alice', 'alice@example.com', '123456', 'operator', 'http://localhost:10888/api/v1/images/b965cb9e-f3d0-4f21-90c5-e05a07ca6a7d'),

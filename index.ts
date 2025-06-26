@@ -10,6 +10,7 @@ import { router as uploads } from "./routes/uploads";
 import { router as users } from "./routes/users";
 import { router as hotels } from "./routes/hotels";
 import { router as msgs } from "./routes/msgs";
+import { router as favs } from "./routes/favs";
 import serve from "koa-static";
 
 const app: Koa = new Koa();
@@ -28,6 +29,7 @@ app.use(uploads.middleware());
 app.use(users.middleware());
 app.use(hotels.middleware());
 app.use(msgs.middleware());
+app.use(favs.middleware()); // Add favs middleware
 
 app.use(async (ctx: RouterContext, next: any) => {
   try {

@@ -21,6 +21,8 @@ tags:
     description: User account management
   - name: Authentication
     description: Login and authentication
+  - name: Favourites
+    description: Manage user favourites
 
 paths:
   /hotels:
@@ -190,6 +192,233 @@ paths:
         500:
           description: Internal server error
 
+  /favs/add:
+    post:
+      tags:
+        - Favourites
+      summary: Add a hotel to favourites
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "./favs.json#/definitions/addFavourite"
+      responses:
+        "200":
+          description: Favourite added successfully
+        "400":
+          description: Validation failed
+        "401":
+          description: Unauthorized
+
+  /favs/delete:
+    delete:
+      tags:
+        - Favourites
+      summary: Remove a hotel from favourites
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "./favs.json#/definitions/deleteFavourite"
+      responses:
+        "200":
+          description: Favourite removed successfully
+        "400":
+          description: Validation failed
+        "401":
+          description: Unauthorized
+
+  /favs/list:
+    get:
+      tags:
+        - Favourites
+      summary: List all favourite hotels for a user
+      parameters:
+        - in: query
+          name: user_id
+          schema:
+            type: integer
+          required: true
+          description: ID of the user
+      responses:
+        "200":
+          description: List of favourite hotels
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Hotel"
+        "400":
+          description: Validation failed
+        "401":
+          description: Unauthorized
+
+  /users/login:
+    post:
+      tags:
+        - Users
+      summary: User login
+      description: Authenticate a user and return a JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: User's username
+                password:
+                  type: string
+                  description: User's password
+              required:
+                - username
+                - password
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  token:
+                    type: string
+                  user:
+                    $ref: "#/components/schemas/User"
+        "401":
+          description: Invalid credentials
+        "500":
+          description: Internal server error
+
+  /users/public/register:
+    post:
+      tags:
+        - Users
+      summary: Register a public user
+      description: Create a new public user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "./user.json#/definitions/user"
+      responses:
+        "201":
+          description: User registered successfully
+        "400":
+          description: Validation failed
+        "500":
+          description: Registration failed
+
+  /users/staff/register:
+    post:
+      tags:
+        - Users
+      summary: Register a staff user
+      description: Create a new staff user account using a sign-up code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                signupCode:
+                  type: string
+                  description: Sign-up code for staff registration
+                firstname:
+                  type: string
+                lastname:
+                  type: string
+                username:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                avatarurl:
+                  type: string
+                  format: uri
+              required:
+                - signupCode
+                - username
+                - email
+                - password
+      responses:
+        "201":
+          description: Staff account registered successfully
+        "400":
+          description: Validation failed
+        "403":
+          description: Invalid or already used sign-up code
+        "500":
+          description: Registration failed
+
+  /users/public/role:
+    get:
+      tags:
+        - Users
+      summary: Get user role
+      description: Retrieve the role of the authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User role retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  role:
+                    type: string
+                    description: User's role
+        "400":
+          description: Invalid token or user ID not found
+        "404":
+          description: User not found
+        "500":
+          description: Internal server error
+
+  /users/booking/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get booking list by user ID
+      description: Retrieve the booking list for a specific user
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: User ID
+      responses:
+        "200":
+          description: Booking list retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+        "401":
+          description: Unauthorized
+        "404":
+          description: No bookings found
+        "500":
+          description: Internal server error
+
 components:
   schemas:
     Hotel:
@@ -295,6 +524,27 @@ components:
           items:
             $ref: "#/components/schemas/Room"
           description: List of rooms in the booking
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the user
+        username:
+          type: string
+          description: Username of the user
+        email:
+          type: string
+          format: email
+          description: Email address of the user
+        role:
+          type: string
+          description: Role of the user (e.g., "admin", "staff", "public")
+        avatar_url:
+          type: string
+          format: uri
+          description: URL of the user's avatar image
 
   securitySchemes:
     bearerAuth:

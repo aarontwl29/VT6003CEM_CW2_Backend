@@ -169,39 +169,39 @@ async function dislikePost(ctx: RouterContext, next: any) {
   await next();
 }
 
-//mehtods for Heart(Favorite) icon
-async function userFav(ctx: RouterContext, next: any) {
-  // For you TODO: add error handling and error response code
-  const user = ctx.state.user;
-  const uid: number = user.user.id;
-  const result = await favs.listFav(uid);
-  ctx.body = result ? result : 0;
-  await next();
-}
+// //mehtods for Heart(Favorite) icon
+// async function userFav(ctx: RouterContext, next: any) {
+//   // For you TODO: add error handling and error response code
+//   const user = ctx.state.user;
+//   const uid: number = user.user.id;
+//   const result = await favs.listFav(uid);
+//   ctx.body = result ? result : 0;
+//   await next();
+// }
 
-async function postFav(ctx: RouterContext, next: any) {
-  // For you TODO: add error handling and error response code
-  const user = ctx.state.user;
-  const uid: number = user.user.id;
-  const id = parseInt(ctx.params.id);
-  const result: any = await favs.addFav(id, uid);
-  ctx.body = result.affectedRows
-    ? { message: "added", userid: result.userid }
-    : { message: "error" };
-  await next();
-}
+// async function postFav(ctx: RouterContext, next: any) {
+//   // For you TODO: add error handling and error response code
+//   const user = ctx.state.user;
+//   const uid: number = user.user.id;
+//   const id = parseInt(ctx.params.id);
+//   const result: any = await favs.addFav(id, uid);
+//   ctx.body = result.affectedRows
+//     ? { message: "added", userid: result.userid }
+//     : { message: "error" };
+//   await next();
+// }
 
-async function rmFav(ctx: RouterContext, next: any) {
-  // For you TODO: add error handling and error response code
-  const user = ctx.state.user;
-  const uid: number = user.user.id;
-  const id = parseInt(ctx.params.id);
-  const result: any = await favs.removeFav(id, uid);
-  ctx.body = result.affectedRows
-    ? { message: "removed" }
-    : { message: "error" };
-  await next();
-}
+// async function rmFav(ctx: RouterContext, next: any) {
+//   // For you TODO: add error handling and error response code
+//   const user = ctx.state.user;
+//   const uid: number = user.user.id;
+//   const id = parseInt(ctx.params.id);
+//   const result: any = await favs.removeFav(id, uid);
+//   ctx.body = result.affectedRows
+//     ? { message: "removed" }
+//     : { message: "error" };
+//   await next();
+// }
 
 // //methods for message icon
 // async function listMsg(ctx: RouterContext, next: any) {
