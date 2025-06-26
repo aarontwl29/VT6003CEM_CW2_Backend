@@ -13,6 +13,7 @@ import { router as hotels } from "./routes/hotels";
 import { router as msgs } from "./routes/msgs";
 import { router as favs } from "./routes/favs";
 import { router as userUploads } from "./routes/userUploads";
+import { router as images } from "./routes/images";
 
 const app: Koa = new Koa();
 const router: Router = new Router();
@@ -32,7 +33,9 @@ app.use(hotels.middleware());
 app.use(msgs.middleware());
 app.use(favs.middleware());
 app.use(userUploads.routes());
+app.use(images.routes());
 
+// Serve static files from public directory (for uploaded images)
 app.use(serve(path.join(__dirname, "public")));
 
 app.use(async (ctx: RouterContext, next: any) => {

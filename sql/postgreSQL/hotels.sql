@@ -51,26 +51,26 @@ CREATE TABLE messages (
 
 
 INSERT INTO hotels (name, description, city, country, address, rating, review_count, image_url) VALUES
-('Ocean Breeze Resort', 'A luxurious resort with private beach access.', 'Phuket', 'Thailand', '123 Beachside Road', 4.5, 220, 'https://example.com/ocean.jpg'),
-('Mountain View Lodge', 'Cozy lodge with stunning mountain views.', 'Nagano', 'Japan', '45 Snow Peak Lane', 4.3, 175, 'https://example.com/mountain.jpg'),
-('City Central Hotel', 'Modern hotel in the heart of the city.', 'New York', 'USA', '88 Main Street', 4.2, 300, 'https://example.com/city.jpg'),
-('Lakeview Retreat', 'Relax by the serene lakeside.', 'Queenstown', 'New Zealand', '7 Lakeshore Road', 4.7, 190, 'https://example.com/lake.jpg'),
-('Desert Oasis Inn', 'Comfort in the heart of the desert.', 'Dubai', 'UAE', '55 Palm Drive', 4.4, 140, 'https://example.com/desert.jpg'),
-('Rainforest Escape', 'Immersive rainforest experience.', 'Kuala Lumpur', 'Malaysia', '99 Jungle Trail', 4.6, 160, 'https://example.com/rainforest.jpg'),
-('Ski Village Lodge', 'Perfect for winter getaways.', 'Whistler', 'Canada', '12 Snowy Hill', 4.5, 210, 'https://example.com/ski.jpg'),
-('Tropical Paradise Hotel', 'Escape to sunny beaches.', 'Bali', 'Indonesia', '500 Sunset Blvd', 4.8, 250, 'https://example.com/tropical.jpg'),
-('Countryside Inn', 'Charming stay in the countryside.', 'Oxford', 'UK', '33 Greenfield Road', 4.1, 130, 'https://example.com/countryside.jpg'),
-('Island Breeze Suites', 'Island life with modern comfort.', 'Maldives', 'Maldives', 'Beachfront Villa 21', 4.9, 300, 'https://example.com/island.jpg'),
-('Safari Wilderness Lodge', 'Stay close to the wild.', 'Nairobi', 'Kenya', 'Safari Park Road', 4.2, 110, 'https://example.com/safari.jpg'),
-('Historic Castle Hotel', 'Live like royalty in a castle.', 'Edinburgh', 'UK', 'Castle Hill', 4.5, 180, 'https://example.com/castle.jpg'),
-('Luxury Downtown Suites', 'High-end suites in the business district.', 'Singapore', 'Singapore', '8 Marina Bay', 4.7, 240, 'https://example.com/luxury.jpg'),
-('Seaside Family Resort', 'Fun for the whole family.', 'Gold Coast', 'Australia', '10 Surfer Beach Road', 4.3, 200, 'https://example.com/seaside.jpg'),
-('Northern Lights Hotel', 'Watch the aurora from your room.', 'Reykjavik', 'Iceland', 'Aurora Lane 5', 4.6, 150, 'https://example.com/northernlights.jpg'),
-('Hillside Cabin Resort', 'Wooden cabins with mountain views.', 'Aspen', 'USA', '55 Pine Trail', 4.4, 170, 'https://example.com/hillside.jpg'),
-('Beachfront Budget Inn', 'Affordable beachfront stay.', 'Cancun', 'Mexico', '20 Ocean Drive', 4.0, 90, 'https://example.com/beachfront.jpg'),
-('Urban Boutique Hotel', 'Stylish rooms in a vibrant area.', 'Berlin', 'Germany', '66 Art Street', 4.2, 140, 'https://example.com/urban.jpg'),
-('Island Cliff Hotel', 'Panoramic views from cliffside rooms.', 'Santorini', 'Greece', '15 Cliff Edge', 4.8, 230, 'https://example.com/islandcliff.jpg'),
-('Safari Desert Camp', 'Experience desert nights under the stars.', 'Doha', 'Qatar', 'Sand Dune Way', 4.3, 100, 'https://example.com/desertcamp.jpg');
+('Ocean Breeze Resort', 'A luxurious resort with private beach access.', 'Phuket', 'Thailand', '123 Beachside Road', 4.5, 220, 'http://localhost:10888/api/v1/images/Ocean Breeze Resort.jpg'),
+('Mountain View Lodge', 'Cozy lodge with stunning mountain views.', 'Nagano', 'Japan', '45 Snow Peak Lane', 4.3, 175, 'http://localhost:10888/api/v1/images/Mountain View Lodge.jpg'),
+('City Central Hotel', 'Modern hotel in the heart of the city.', 'New York', 'USA', '88 Main Street', 4.2, 300, 'http://localhost:10888/api/v1/images/City Central Hotel.jpg'),
+('Lakeview Retreat', 'Relax by the serene lakeside.', 'Queenstown', 'New Zealand', '7 Lakeshore Road', 4.7, 190, 'http://localhost:10888/api/v1/images/Lakeview Retreat.jpg'),
+('Desert Oasis Inn', 'Comfort in the heart of the desert.', 'Dubai', 'UAE', '55 Palm Drive', 4.4, 140, 'http://localhost:10888/api/v1/images/Hotel.png'),
+('Rainforest Escape', 'Immersive rainforest experience.', 'Kuala Lumpur', 'Malaysia', '99 Jungle Trail', 4.6, 160, 'http://localhost:10888/api/v1/images/Hotel.png'),
+('Ski Village Lodge', 'Perfect for winter getaways.', 'Whistler', 'Canada', '12 Snowy Hill', 4.5, 210, 'http://localhost:10888/api/v1/images/Hotel.png'),
+('Tropical Paradise Hotel', 'Escape to sunny beaches.', 'Bali', 'Indonesia', '500 Sunset Blvd', 4.8, 250, 'http://localhost:10888/api/v1/images/Hotel.png'),
+('Countryside Inn', 'Charming stay in the countryside.', 'Oxford', 'UK', '33 Greenfield Road', 4.1, 130, 'http://localhost:10888/api/v1/images/Hotel.png'),
+('Island Breeze Suites', 'Island life with modern comfort.', 'Maldives', 'Maldives', 'Beachfront Villa 21', 4.9, 300, 'http://localhost:10888/api/v1/images/Hotel.png'),
+('Safari Wilderness Lodge', 'Stay close to the wild.', 'Nairobi', 'Kenya', 'Safari Park Road', 4.2, 110, 'http://localhost:10888/api/v1/images/Hotel.png'),
+('Historic Castle Hotel', 'Live like royalty in a castle.', 'Edinburgh', 'UK', 'Castle Hill', 4.5, 180, 'http://localhost:10888/api/v1/images/Hotel.png'),
+('Luxury Downtown Suites', 'High-end suites in the business district.', 'Singapore', 'Singapore', '8 Marina Bay', 4.7, 240, 'http://localhost:10888/api/v1/images/Hotel.png'),
+('Seaside Family Resort', 'Fun for the whole family.', 'Gold Coast', 'Australia', '10 Surfer Beach Road', 4.3, 200, 'http://localhost:10888/api/v1/images/Hotel.png'),
+('Northern Lights Hotel', 'Watch the aurora from your room.', 'Reykjavik', 'Iceland', 'Aurora Lane 5', 4.6, 150, 'http://localhost:10888/api/v1/images/Hotel.png'),
+('Hillside Cabin Resort', 'Wooden cabins with mountain views.', 'Aspen', 'USA', '55 Pine Trail', 4.4, 170, 'http://localhost:10888/api/v1/images/Hotel.png'),
+('Beachfront Budget Inn', 'Affordable beachfront stay.', 'Cancun', 'Mexico', '20 Ocean Drive', 4.0, 90, 'http://localhost:10888/api/v1/images/Hotel.png'),
+('Urban Boutique Hotel', 'Stylish rooms in a vibrant area.', 'Berlin', 'Germany', '66 Art Street', 4.2, 140, 'http://localhost:10888/api/v1/images/Hotel.png'),
+('Island Cliff Hotel', 'Panoramic views from cliffside rooms.', 'Santorini', 'Greece', '15 Cliff Edge', 4.8, 230, 'http://localhost:10888/api/v1/images/Hotel.png'),
+('Safari Desert Camp', 'Experience desert nights under the stars.', 'Doha', 'Qatar', 'Sand Dune Way', 4.3, 100, 'http://localhost:10888/api/v1/images/Hotel.png');
 
 
 INSERT INTO rooms (id, hotel_id, capacity, bed_option, amenities, price_per_night, has_discount, discount_rate)
