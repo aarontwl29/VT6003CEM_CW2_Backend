@@ -1,45 +1,34 @@
-import * as db from '../helpers/database';
+import * as db from "../helpers/database";
 
-//get all Msgs of articled
-export const getMsg= async  (id:any)=> {
-  let query = "SELECT * FROM msgs WHERE articleid=?;";
-  const result = await db.run_query(query, [id]);
-  return result;
-}
+/**
+ * Get the latest message by booking ID and user ID.
+ * @param booking_id - The ID of the booking.
+ * @param user_id - The ID of the user (sender or recipient).
+ * @param index - The minimum message ID to filter (optional).
+ * @returns The latest message matching the criteria.
+ */
+export const getLatestMessageByBookingIdAndUserId = async (
+  booking_id: number,
+  user_id: number,
+  index: number = 0
+): Promise<any | null> => {
+  const query = `
+    SELECT *
+    FROM messages
+    WHERE booking_id = ?
+      AND (sender_id = ? OR recipient_id = ?)
+      AND id > ?
+    ORDER BY id DESC
+    LIMIT 1;
+  `;
 
-//add a new Msg
-export const add_Msg = async (id:any, uid:any,uname:any,email:any, msg:any) =>{
- console.log('body query ', msg)
-  let msgtxt=msg.messagetxt;
-  console.log ("msgtxt from query ",msgtxt)
-    let query = `INSERT INTO msgs (articleid,userid,username, email, messagetxt) VALUES (${id},${uid},'${uname}','${email}','${msgtxt}') `  
-  try{
-    await db.run_query(query, [id, uid,uname, email, msgtxt]);  
-       return {"status": 201, "affectedRows":1 }
-    }
-   catch(error) {
-    return error
+  const values = [booking_id, user_id, user_id, index];
+
+  try {
+    const data = await db.run_query(query, values);
+    return data.length > 0 ? data[0] : null; // Return the latest message or null if no records found
+  } catch (error) {
+    console.error("Error retrieving the latest message:", error);
+    throw error;
   }
-  
-}
-
-
-    
-
-//remove a msg record
-export const removeMsg = async  (id:any, comment:any)=> {
-  console.log('comment delete req body', comment)
-  let cid =comment.cid
-  console.log('comment delete req ', cid  )    
-  
-let query = "DELETE FROM msgs WHERE articleid=? AND cid=?; ";
-   try{
-    await db.run_query(query, [id, cid]);  
-    return { "affectedRows":1 }
-  } catch(error) {
-    return error
-  }
-
-}
-
-
+};

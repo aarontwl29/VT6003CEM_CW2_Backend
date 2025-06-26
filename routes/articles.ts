@@ -3,7 +3,7 @@ import bodyParser from "koa-bodyparser";
 import * as model from "../models/articles";
 import * as likes from "../models/likes";
 import * as favs from "../models/favs";
-import * as msgs from "../models/msgs";
+// import * as msgs from "../models/msgs";
 
 interface Post {
   id: number;
@@ -203,47 +203,47 @@ async function rmFav(ctx: RouterContext, next: any) {
   await next();
 }
 
-//methods for message icon
-async function listMsg(ctx: RouterContext, next: any) {
-  const id = parseInt(ctx.params.id);
-  const result = await msgs.getMsg(id);
-  ctx.body = result ? result : 0;
-  await next();
-}
+// //methods for message icon
+// async function listMsg(ctx: RouterContext, next: any) {
+//   const id = parseInt(ctx.params.id);
+//   const result = await msgs.getMsg(id);
+//   ctx.body = result ? result : 0;
+//   await next();
+// }
 
-async function addMsg(ctx: RouterContext, next: any) {
-  const id = parseInt(ctx.params.id);
-  const user = ctx.state.user;
-  const uid: number = user.user.id;
-  const uname = user.user.username;
-  const uemail = user.user.email;
-  let msg: any = ctx.request.body;
-  console.log("ctx.request.body ", ctx.request.body);
-  console.log("..msg ", msg);
-  const result: any = await msgs.add_Msg(id, uid, uname, uemail, msg);
-  ctx.body = result.affectedRows ? { message: "added" } : { message: "error" };
-  await next();
-}
+// async function addMsg(ctx: RouterContext, next: any) {
+//   const id = parseInt(ctx.params.id);
+//   const user = ctx.state.user;
+//   const uid: number = user.user.id;
+//   const uname = user.user.username;
+//   const uemail = user.user.email;
+//   let msg: any = ctx.request.body;
+//   console.log("ctx.request.body ", ctx.request.body);
+//   console.log("..msg ", msg);
+//   const result: any = await msgs.add_Msg(id, uid, uname, uemail, msg);
+//   ctx.body = result.affectedRows ? { message: "added" } : { message: "error" };
+//   await next();
+// }
 
-async function rmMsg(ctx: RouterContext, next: any) {
-  // const uid = ctx.state.user.id;
-  // only admin can del article comment
-  if (ctx.state.user.user.role === "admin") {
-    let b: any = ctx.request.body;
+// async function rmMsg(ctx: RouterContext, next: any) {
+//   // const uid = ctx.state.user.id;
+//   // only admin can del article comment
+//   if (ctx.state.user.user.role === "admin") {
+//     let b: any = ctx.request.body;
 
-    const id = parseInt(ctx.params.id);
-    const result: any = await msgs.removeMsg(id, b);
-    ctx.body = result.affectedRows
-      ? { message: "removed" }
-      : { message: "error" };
-    await next();
-  } else {
-    ctx.body = {
-      msg: ` ${ctx.state.user.user.role} role is not authorized to delete user comment`,
-    };
-    ctx.status = 401;
-  }
-}
+//     const id = parseInt(ctx.params.id);
+//     const result: any = await msgs.removeMsg(id, b);
+//     ctx.body = result.affectedRows
+//       ? { message: "removed" }
+//       : { message: "error" };
+//     await next();
+//   } else {
+//     ctx.body = {
+//       msg: ` ${ctx.state.user.user.role} role is not authorized to delete user comment`,
+//     };
+//     ctx.status = 401;
+//   }
+// }
 router.get("/", getAll);
 // router.post("/", basicAuth, bodyParser(), validateArticle, createArticle);
 router.get("/:id([0-9]{1,})", getById);

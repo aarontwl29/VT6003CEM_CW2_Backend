@@ -6,10 +6,10 @@ import passport from "koa-passport";
 import bodyParser from "koa-bodyparser";
 import cors from "@koa/cors";
 import { router as articles } from "./routes/articles";
-
 import { router as uploads } from "./routes/uploads";
 import { router as users } from "./routes/users";
 import { router as hotels } from "./routes/hotels";
+import { router as msgs } from "./routes/msgs";
 import serve from "koa-static";
 
 const app: Koa = new Koa();
@@ -24,10 +24,10 @@ app.use(bodyParser());
 app.use(router.routes());
 app.use(passport.initialize());
 app.use(articles.middleware());
-
 app.use(uploads.middleware());
 app.use(users.middleware());
 app.use(hotels.middleware());
+app.use(msgs.middleware());
 
 app.use(async (ctx: RouterContext, next: any) => {
   try {
@@ -40,6 +40,7 @@ app.use(async (ctx: RouterContext, next: any) => {
     ctx.body = { err: err };
   }
 });
+
 let port = process.env.PORT || 10888;
 app.listen(10888, () => {
   console.log(`Koa Started at ${port}`);
