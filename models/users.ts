@@ -55,22 +55,25 @@ export const findByUsername = async (username: string) => {
   return user;
 };
 
-export const update = async (user: any, id: any) => {
-  //console.log("user " , user)
-  // console.log("id ",id)
-  //   let keys = Object.keys(user)
-  //   let values = Object.values(user)
-  //   let updateString=""
-  //   for(let i: number = 0; i<values.length;i++){updateString+=keys[i]+"="+"'"+values[i]+"'"+"," }
-  //  updateString= updateString.slice(0, -1)
-  //  // console.log("updateString ", updateString)
-  //   let query = `UPDATE users SET ${updateString} WHERE ID=${id} RETURNING *;`
-  //   try{
-  //    await db.run_query(query, values)
-  //     return {"status": 201}
-  //   } catch(error) {
-  //     return error
-  //   }
+export const update = async (user: any, id: number) => {
+  // Extract keys and values from the user object
+  const keys = Object.keys(user);
+  const values = Object.values(user);
+
+  // Build the update string dynamically
+  const updateString = keys.map((key, index) => `${key} = ?`).join(", ");
+
+  // Construct the SQL query
+  const query = `UPDATE users SET ${updateString} WHERE id = ? RETURNING *;`;
+
+  try {
+    // Execute the query with values and the user ID
+    const result = await db.run_query(query, [...values, id]);
+    return result.length > 0 ? result[0] : null; // Return the updated user
+  } catch (error) {
+    console.error("Error in update:", error);
+    throw error;
+  }
 };
 
 export const deleteById = async (id: any) => {

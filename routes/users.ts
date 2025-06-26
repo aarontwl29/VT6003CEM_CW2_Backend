@@ -71,56 +71,6 @@ const doSearch = async (ctx: any, next: any) => {
   }
 };
 
-const updateUser = async (ctx: any) => {
-  let id = +ctx.params.id;
-  let c: any = ctx.request.body;
-  let pwd: any = c.password;
-  let hash: any = ctx.state.user.user.password;
-
-  if (pwd == "") {
-    // No update pwd  input
-    //console.log('hash '+hash)
-    c.password = hash;
-    //console.log('c.password '+c.password)
-  }
-  if (!bcrypt.compareSync(pwd, hash) && pwd != "") {
-    //Encrypte & update  new pwd
-    const salt = bcrypt.genSaltSync(10);
-    const hashpwd = bcrypt.hashSync(`${pwd}`, salt);
-    // console.log('hashpwd  '+ hashpwd )
-    c.password = hashpwd;
-    // console.log('hashpwd  '+ c.password )
-  } else {
-    c.password = hash;
-  } // New pwd = old pwd
-
-  if (ctx.state.user.user.role === "admin" || ctx.state.user.user.id == id) {
-    let result = await model.update(c, id);
-    // if (result) {
-    //   ctx.status = 201;
-    //   ctx.body = `User with id ${id} updated`;
-    // }
-  } else {
-    ctx.body = {
-      msg: " Profile records can be updated by its owner or admin role",
-    };
-    ctx.status = 401;
-  }
-};
-
-const deleteUser = async (ctx: any, next: any) => {
-  let id = +ctx.params.id;
-  if (ctx.state.user.user.role === "admin" || ctx.state.user.user.id == id) {
-    let user = await model.deleteById(id);
-    ctx.status = 201;
-    ctx.body = `User with id ${id} deleted`;
-    await next();
-  } else {
-    ctx.body = { msg: ` ${ctx.state.user.user.role} role is not authorized` };
-    ctx.status = 401;
-  }
-};
-
 // Own
 export const createPublicUser = async (ctx: any) => {
   const body = ctx.request.body;
@@ -276,13 +226,288 @@ export const getRole = async (ctx: RouterContext) => {
   }
 };
 
-// router.get("/", basicAuth, doSearch);
-//router.get('/search', basicAuth, doSearch);
+/**
+ * Route: Get user profile (for the logged-in user)
+ */
+const getUserInfo = async (ctx: RouterContext, next: any) => {
+  const userId = ctx.state.user?.id; // Extract user ID from JWT token
 
-// router.put("/:id([0-9]{1,})", basicAuth, bodyParser(), updateUser);
-// router.del("/:id([0-9]{1,})", basicAuth, deleteUser);
-// router.post("/login", basicAuth, login);
-// new
+  if (!userId) {
+    ctx.status = 400;
+    ctx.body = { message: "User ID not found in token" };
+    return;
+  }
+
+  try {
+    const user = await model.getByUserId(userId);
+
+    if (user) {
+      ctx.status = 200;
+      ctx.body = user;
+    } else {
+      ctx.status = 404;
+      ctx.body = { message: "User not found" };
+    }
+  } catch (error) {
+    const err = error as Error;
+    ctx.status = 500;
+    ctx.body = { message: "Internal server error", error: err.message };
+  }
+
+  await next();
+};
+
+/**
+ * Route: Get all users (for admin)
+ */
+const getUsersInfo = async (ctx: RouterContext, next: any) => {
+  const userRole = ctx.state.user?.role; // Extract user role from JWT token
+
+  if (userRole !== "admin") {
+    ctx.status = 403;
+    ctx.body = { message: "Access denied. Admin role required." };
+    return;
+  }
+
+  try {
+    const { limit = 10, page = 1 } = ctx.request.query;
+    const users = await model.getAll(
+      parseInt(limit as string),
+      parseInt(page as string)
+    );
+
+    if (users.length) {
+      ctx.status = 200;
+      ctx.body = users;
+    } else {
+      ctx.status = 404;
+      ctx.body = { message: "No users found" };
+    }
+  } catch (error) {
+    const err = error as Error;
+    ctx.status = 500;
+    ctx.body = { message: "Internal server error", error: err.message };
+  }
+
+  await next();
+};
+
+/**
+ * Route: Change password
+ */
+const changePassword = async (ctx: RouterContext, next: any) => {
+  const userId = ctx.state.user?.id; // Extract user ID from JWT token
+  const { oldPassword, newPassword } = ctx.request.body as {
+    oldPassword: string;
+    newPassword: string;
+  };
+
+  if (!userId) {
+    ctx.status = 400;
+    ctx.body = { message: "User ID not found in token" };
+    return;
+  }
+
+  if (!oldPassword || !newPassword) {
+    ctx.status = 400;
+    ctx.body = { message: "Both old and new passwords are required" };
+    return;
+  }
+
+  try {
+    // Fetch user by ID
+    const user = await model.getByUserId(userId);
+
+    if (!user) {
+      ctx.status = 404;
+      ctx.body = { message: "User not found" };
+      return;
+    }
+
+    // Validate old password directly
+    if (user.password !== oldPassword) {
+      ctx.status = 401;
+      ctx.body = { message: "Old password is incorrect" };
+      return;
+    }
+
+    // Update password in the database
+    await model.update({ password: newPassword }, userId);
+
+    ctx.status = 200;
+    ctx.body = { message: "Password updated successfully" };
+  } catch (error) {
+    const err = error as Error;
+    ctx.status = 500;
+    ctx.body = { message: "Internal server error", error: err.message };
+  }
+
+  await next();
+};
+
+/**
+ * Route: Update user profile information
+ */
+const updateUserInfo = async (ctx: RouterContext, next: any) => {
+  const userId = ctx.state.user?.id; // Extract user ID from JWT token
+  const userRole = ctx.state.user?.role; // Extract user role from JWT token
+  const targetUserId = ctx.params.id ? parseInt(ctx.params.id) : userId; // Target user ID (from params or current user)
+
+  const {
+    firstname,
+    lastname,
+    about,
+    avatarurl,
+    oldPassword,
+    newPassword,
+    role, // Only admin can update roles
+  } = ctx.request.body as {
+    firstname?: string;
+    lastname?: string;
+    about?: string;
+    avatarurl?: string;
+    oldPassword?: string;
+    newPassword?: string;
+    role?: string;
+  };
+
+  if (!userId) {
+    ctx.status = 400;
+    ctx.body = { message: "User ID not found in token" };
+    return;
+  }
+
+  // Role-based access control
+  const canUpdateOtherUsers = userRole === "admin";
+  const isUpdatingSelf = userId === targetUserId;
+
+  if (!canUpdateOtherUsers && !isUpdatingSelf) {
+    ctx.status = 403;
+    ctx.body = {
+      message:
+        "Access denied. You can only update your own profile or need admin privileges.",
+    };
+    return;
+  }
+
+  try {
+    // Fetch the target user to verify existence and get current data
+    const targetUser = await model.getByUserId(targetUserId);
+    if (!targetUser) {
+      ctx.status = 404;
+      ctx.body = { message: "User not found" };
+      return;
+    }
+
+    // Build update object with allowed fields only
+    const updateData: any = {};
+
+    // Fields that can be updated by the user themselves or admin
+    if (firstname !== undefined) updateData.firstname = firstname;
+    if (lastname !== undefined) updateData.lastname = lastname;
+    if (about !== undefined) updateData.about = about;
+    if (avatarurl !== undefined) updateData.avatarurl = avatarurl;
+
+    // Role update - only admin can update roles
+    if (role !== undefined) {
+      if (userRole !== "admin") {
+        ctx.status = 403;
+        ctx.body = { message: "Only administrators can update user roles" };
+        return;
+      }
+
+      // Validate role value
+      const validRoles = ["admin", "operator", "user"];
+      if (!validRoles.includes(role)) {
+        ctx.status = 400;
+        ctx.body = {
+          message: "Invalid role. Must be one of: admin, operator, user",
+        };
+        return;
+      }
+
+      updateData.role = role;
+    }
+
+    // Password change logic
+    if (newPassword !== undefined) {
+      if (!oldPassword) {
+        ctx.status = 400;
+        ctx.body = {
+          message: "Old password is required when changing password",
+        };
+        return;
+      }
+
+      // For admin updating other users, they don't need to provide old password
+      if (isUpdatingSelf) {
+        // Validate old password for self-update
+        if (targetUser.password !== oldPassword) {
+          ctx.status = 401;
+          ctx.body = { message: "Old password is incorrect" };
+          return;
+        }
+      } else if (userRole !== "admin") {
+        ctx.status = 403;
+        ctx.body = {
+          message: "Only the user themselves or admin can change passwords",
+        };
+        return;
+      }
+
+      // Validate new password strength (optional)
+      if (newPassword.length < 6) {
+        ctx.status = 400;
+        ctx.body = {
+          message: "New password must be at least 6 characters long",
+        };
+        return;
+      }
+
+      updateData.password = newPassword;
+    }
+
+    // Check if there's anything to update
+    if (Object.keys(updateData).length === 0) {
+      ctx.status = 400;
+      ctx.body = { message: "No valid fields provided for update" };
+      return;
+    }
+
+    // Perform the update
+    const updatedUser: any = await model.update(updateData, targetUserId);
+
+    if (updatedUser) {
+      // Remove password from response
+      const { password, ...userResponse } = updatedUser;
+
+      ctx.status = 200;
+      ctx.body = {
+        message: "User information updated successfully",
+        user: userResponse,
+      };
+    } else {
+      ctx.status = 500;
+      ctx.body = { message: "Failed to update user information" };
+    }
+  } catch (error) {
+    const err = error as Error;
+    ctx.status = 500;
+    ctx.body = { message: "Internal server error", error: err.message };
+  }
+
+  await next();
+};
+
+/**
+ * Route: Update current user's profile (simplified version)
+ */
+const updateMyProfile = async (ctx: RouterContext, next: any) => {
+  // Set the target user ID to the current user's ID
+  ctx.params.id = ctx.state.user?.id?.toString();
+  return updateUserInfo(ctx, next);
+};
+
 router.post("/login", bodyParser(), login);
 router.post("/public/register", bodyParser(), validateUser, createPublicUser);
 router.post("/staff/register", bodyParser(), validateUser, createStaffUser);
@@ -292,5 +517,10 @@ router.get(
   jwtAuth,
   bookingRoutes.getUserInfoById_BookingList
 );
+router.get("/profile", jwtAuth, getUserInfo);
+router.get("/list", jwtAuth, getUsersInfo);
+
+router.put("/profile", jwtAuth, bodyParser(), updateMyProfile);
+router.put("/profile/:id([0-9]+)", jwtAuth, bodyParser(), updateUserInfo);
 
 export { router };

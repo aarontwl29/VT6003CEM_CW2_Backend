@@ -5,13 +5,14 @@ import json from "koa-json";
 import passport from "koa-passport";
 import bodyParser from "koa-bodyparser";
 import cors from "@koa/cors";
-import { router as articles } from "./routes/articles";
-import { router as uploads } from "./routes/uploads";
+import serve from "koa-static";
+import path from "path";
+
 import { router as users } from "./routes/users";
 import { router as hotels } from "./routes/hotels";
 import { router as msgs } from "./routes/msgs";
 import { router as favs } from "./routes/favs";
-import serve from "koa-static";
+import { router as userUploads } from "./routes/userUploads";
 
 const app: Koa = new Koa();
 const router: Router = new Router();
@@ -24,12 +25,15 @@ app.use(json());
 app.use(bodyParser());
 app.use(router.routes());
 app.use(passport.initialize());
-app.use(articles.middleware());
-app.use(uploads.middleware());
+
+// Route middlewares
 app.use(users.middleware());
 app.use(hotels.middleware());
 app.use(msgs.middleware());
-app.use(favs.middleware()); // Add favs middleware
+app.use(favs.middleware());
+app.use(userUploads.routes());
+
+app.use(serve(path.join(__dirname, "public")));
 
 app.use(async (ctx: RouterContext, next: any) => {
   try {
