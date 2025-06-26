@@ -1,3 +1,10 @@
+/**
+ * @fileoverview User file upload routes
+ * @description Handles user avatar image uploads with file validation and storage
+ * @author VT6003CEM Hotel Booking API
+ * @version 1.0.0
+ */
+
 import Router, { RouterContext } from "koa-router";
 import koaBody from "koa-body";
 import mime from "mime-types";
@@ -6,6 +13,15 @@ import { v4 as uuidv4 } from "uuid";
 import { update } from "../models/users";
 import { jwtAuth } from "../controllers/authJWT";
 
+/**
+ * Configuration for file uploads
+ * @type {Object}
+ * @property {boolean} multipart - Enable multipart form parsing
+ * @property {Object} formidable - Formidable configuration
+ * @property {string} formidable.uploadDir - Temporary upload directory
+ * @property {number} formidable.maxFileSize - Maximum file size (5MB)
+ * @property {boolean} formidable.keepExtensions - Keep file extensions
+ */
 const uploadOptions = {
   multipart: true,
   formidable: {
@@ -27,6 +43,27 @@ if (!existsSync("./public/images")) {
   mkdirSync("./public/images", { recursive: true });
 }
 
+/**
+ * Upload user avatar image
+ * @route POST /api/v1/users/upload-avatar
+ * @param {File} upload - Avatar image file (JPG, PNG, GIF - max 5MB)
+ * @returns {Object} Success message with avatar URL
+ * @throws {400} No file uploaded or invalid file type
+ * @throws {401} Unauthorized - Valid JWT token required
+ * @throws {413} File too large (over 5MB)
+ * @throws {500} Upload failed or database error
+ * @description Uploads and processes user avatar image, updates user profile
+ * @security Bearer token required
+ * @example
+ * POST /api/v1/users/upload-avatar
+ * Content-Type: multipart/form-data
+ * Body: { upload: [image file] }
+ *
+ * Response: {
+ * "message": "Avatar uploaded successfully",
+ * "avatar_url": "http://localhost:10888/images/uuid-filename.jpg"
+ * }
+ */
 router.post("/upload-avatar", jwtAuth, koaBodyM, async (ctx: RouterContext) => {
   const userId = ctx.state.user?.id;
   const upload = ctx.request.files?.upload;

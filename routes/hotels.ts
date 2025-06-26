@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Hotel management routes
+ * @description Handles hotel listings, search, room details, and booking operations
+ * @author VT6003CEM Hotel Booking API
+ * @version 1.0.0
+ */
+
 import Router, { RouterContext } from "koa-router";
 import bodyParser from "koa-bodyparser";
 import { jwtAuth } from "../controllers/authJWT";
@@ -9,7 +16,20 @@ import { validateUpdateBooking } from "../controllers/validation";
 
 const router: Router = new Router({ prefix: "/api/v1/hotels" });
 
-// Route: Get all hotels
+/**
+ * Get all hotels with pagination and sorting
+ * @route GET /api/v1/hotels
+ * @param {number} [limit=100] - Maximum number of hotels to return
+ * @param {number} [page=1] - Page number for pagination
+ * @param {string} [order=rating] - Field to sort by
+ * @param {string} [direction=DESC] - Sort direction (ASC/DESC)
+ * @returns {Object[]} Array of hotel objects with pagination
+ * @throws {404} No hotels found
+ * @throws {500} Failed to fetch hotels
+ * @description Retrieves a paginated list of all hotels with basic information
+ * @example
+ * GET /api/v1/hotels?limit=10&page=1&order=rating&direction=DESC
+ */
 const getAll = async (ctx: RouterContext, next: any) => {
   const {
     limit = 100,
@@ -64,7 +84,26 @@ const getAll = async (ctx: RouterContext, next: any) => {
   await next();
 };
 
-// Route: Search hotels
+/**
+ * Search for hotels based on criteria
+ * @route POST /api/v1/hotels/search
+ * @param {string} [country] - Country to filter hotels
+ * @param {string} [city] - City to filter hotels
+ * @param {string} [start_date] - Start date for availability
+ * @param {string} [end_date] - End date for availability
+ * @returns {Object[]} Array of hotel objects matching the search criteria
+ * @throws {404} No hotels found matching the criteria
+ * @throws {500} Failed to search hotels
+ * @description Searches for hotels based on the provided criteria and returns matching hotels
+ * @example
+ * POST /api/v1/hotels/search
+ * {
+ *   "country": "USA",
+ *   "city": "New York",
+ *   "start_date": "2023-10-01",
+ *   "end_date": "2023-10-10"
+ * }
+ */
 const searchHotels = async (ctx: RouterContext, next: any) => {
   const { country, city, start_date, end_date } = ctx.request.body as {
     country?: string;
@@ -103,7 +142,18 @@ const searchHotels = async (ctx: RouterContext, next: any) => {
   await next();
 };
 
-// Route: Get hotel by ID
+/**
+ * Get hotel details by ID
+ * @route GET /api/v1/hotels/{id}
+ * @param {number} id - Hotel ID
+ * @returns {Object} Hotel object with details
+ * @throws {400} Invalid hotel ID
+ * @throws {404} Hotel not found
+ * @throws {500} Failed to fetch hotel
+ * @description Retrieves detailed information about a specific hotel by its ID
+ * @example
+ * GET /api/v1/hotels/1
+ */
 const getHotelById = async (ctx: RouterContext, next: any) => {
   const hotel_id = parseInt(ctx.params.id);
 
@@ -136,7 +186,18 @@ const getHotelById = async (ctx: RouterContext, next: any) => {
   await next();
 };
 
-// Route: Get rooms by hotel ID
+/**
+ * Get rooms available in a hotel by hotel ID
+ * @route GET /api/v1/hotels/{id}/rooms
+ * @param {number} id - Hotel ID
+ * @returns {Object[]} Array of room objects available in the hotel
+ * @throws {400} Invalid hotel ID
+ * @throws {404} No rooms found for this hotel
+ * @throws {500} Failed to fetch rooms
+ * @description Retrieves a list of rooms available in a specific hotel by its ID
+ * @example
+ * GET /api/v1/hotels/1/rooms
+ */
 const getRoomsByHotelId = async (ctx: RouterContext, next: any) => {
   const hotel_id = parseInt(ctx.params.id);
 

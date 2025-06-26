@@ -1,3 +1,10 @@
+/**
+ * @fileoverview User management routes
+ * @description Handles user authentication, registration, profile management, and user operations
+ * @author VT6003CEM Hotel Booking API
+ * @version 1.0.0
+ */
+
 import { generateToken, jwtAuth } from "../controllers/authJWT";
 import { validateUser } from "../controllers/validation";
 import Router, { RouterContext } from "koa-router";
@@ -9,6 +16,18 @@ import bcrypt from "bcryptjs";
 const prefix = "/api/v1/users";
 const router: Router = new Router({ prefix: prefix });
 
+/**
+ * Get all users with pagination (Admin only)
+ * @route GET /api/v1/users
+ * @param {number} [limit=20] - Maximum number of users to return
+ * @param {number} [page=1] - Page number for pagination
+ * @returns {Object[]} Array of user objects
+ * @throws {401} Unauthorized - Admin access required
+ * @throws {404} No users found
+ * @description Retrieves a paginated list of all users (admin access required)
+ * @security Bearer token required
+ * @example GET /api/v1/users?limit=20&page=1
+ */
 const getAll = async (ctx: any, next: any) => {
   let users = await model.getAll(20, 1);
   if (users.length) {
@@ -19,6 +38,20 @@ const getAll = async (ctx: any, next: any) => {
   await next();
 };
 
+/**
+ * Search users by field and query (Admin only)
+ * @route GET /api/v1/users/search
+ * @param {number} [limit=50] - Maximum number of results
+ * @param {number} [page=1] - Page number for pagination
+ * @param {string} [fields] - Fields to search in
+ * @param {string} [q] - Search query
+ * @returns {Object[]} Array of matching user objects
+ * @throws {401} Unauthorized - Admin access required
+ * @throws {404} No users found
+ * @description Searches for users based on field and query parameters (admin access required)
+ * @security Bearer token required
+ * @example GET /api/v1/users/search?fields=username&q=john&limit=10
+ */
 const doSearch = async (ctx: any, next: any) => {
   let { limit = 50, page = 1, fields = "", q = "" } = ctx.request.query;
   // ensure params are integers
